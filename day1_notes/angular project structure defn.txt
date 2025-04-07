@@ -1,0 +1,319 @@
+CSS/Sass (SCSS Syntax)/Sass (Indented Syntax)/ Less
+=====================================================
+
+1. CSS (Cascading Style Sheets)
+
+- Standard style language used to style HTML elements.
+- No preprocessing, just plain syntax.
+
+Example:
+
+css
+/* style.css */
+body {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+Used directly in the browser.
+----------------------------------------------------------------------------------
+
+2. Sass (SCSS Syntax)
+
+- Sass = Syntactically Awesome Stylesheets
+- SCSS is the most popular Sass syntax: looks like regular CSS but supports variables, nesting, mixins, etc.
+
+Example:
+
+scss
+// styles.scss
+$primary-color: #3498db;
+
+body {
+  color: $primary-color;
+
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+Requires compilation (e.g., via Angular CLI, Webpack, or Dart Sass).
+
+------------------------------------------------------------------------------------------
+3. Sass (Indented Syntax)
+
+- Original Sass syntax: no braces `{}` or semicolons `;`
+- Uses indentation instead.
+- Clean but less familiar than SCSS.
+
+Example:
+
+sass
+// styles.sass
+$primary-color: #3498db
+
+body
+  color: $primary-color
+
+  h1
+    font-size: 2rem
+
+Also requires compilation; filename ends in `.sass`.
+
+-------------------------------------------------------------------------------------------
+4. Less
+
+- Another preprocessor similar to Sass.
+- Uses JavaScript-style syntax with variables and functions.
+
+Example:
+
+less
+// styles.less
+@primary-color: #3498db;
+
+body {
+  color: @primary-color;
+
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+Also compiled using tools like Less.js or Webpack loaders.
+------------------------------------------------------------------------------------------
+
+Comparison Table
+
+| Feature         	| CSS      | SCSS (Sass)  | Indented Sass  | Less        |
+|----------------	|-------   |------------- |----------------|--------     |
+| Native in browser 	| yes      | no           | no             | no          |
+| Variables       	| no  	   | yes          | yes            | yes         |
+| Nesting         	| no       | yes          | yes            | yes         |
+| Syntax Style    	| CSS-like | CSS-like     | Indented       | CSS/JS-like |
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+SSR and SSG 
+===========
+SSR – Server-Side Rendering
+
+Definition:  
+Pages are generated on the server at request time (every time a user visits the page).
+
+Best for:  
+- Dynamic content (user-specific or frequently changing)
+- SEO-friendly real-time data
+
+Example:
+
+Imagine a news site:
+
+1. User requests `https://news.com/article/123`
+2. Server fetches data for article `123`
+3. Server renders the HTML and sends it to the browser
+
+-----------------------------------------------------------------------------------------
+SSG – Static Site Generation
+
+Definition:  
+Pages are pre-built at build time into static HTML files. No server-side rendering at request time.
+
+Best for:  
+- Blogs, documentation, marketing sites
+- Fast and cacheable pages
+
+Example:
+
+Imagine a blog:
+
+1. At build time, the site generates HTML for all blog posts
+2. When a user visits, the page is served instantly from the CDN
+
+
+
+
+====================================================================================================================================================
+app.config.ts
+=============
+Purpose: Defines application-level configuration like routing and change detection.
+
+Used with standalone APIs (no NgModules required).
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+---------------------------------------------------------------------------------
+//ApplicationConfig
+This is an interface from @angular/core used to define configuration for the root of an Angular application when using the standalone API (introduced in Angular v14).
+Instead of using NgModules, standalone applications configure themselves with this ApplicationConfig.
+
+//provideZoneChangeDetection
+This is a function to configure how Angular should listen to browser events and run change detection.
+It's part of Angular's Zone.js integration, which tracks asynchronous operations to trigger change detection.
+
+//eventCoalescing: true: This optimizes performance by grouping (coalescing) multiple DOM events and running fewer change detection cycles.
+
+Example: If you have a mousemove event firing rapidly, coalescing means Angular will only process it once per animation frame, not for every tiny move.
+
+//provideRouter
+This sets up Angular's Router service for a standalone application.
+It accepts a route configuration array (routes) and initializes the router accordingly.
+
+
+//export const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+];
+-----------------------------------------------------------------------------------
+export const appConfig: ApplicationConfig = {
+  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+//appConfig is an object of type ApplicationConfig, exported for use in bootstrapping the app.
+
+Inside this object, the providers array contains:
+
+provideZoneChangeDetection – For optimizing how change detection responds to events.
+
+provideRouter(routes) – For setting up routing with the app’s route configuration.
+-----------------------------------------------------------------------------------------
+Concept	Explanation:
+-------------------
+ApplicationConfig:Defines configuration for standalone Angular apps
+provideZoneChangeDetection:Customizes how Angular detects changes based on browser events
+eventCoalescing: true	Optimizes performance by batching events together
+provideRouter(routes):	Sets up app routing without NgModules
+appConfig:The exported configuration used during app bootstrap
+
+--------------------------------------------------------------------------------------
+
+main.ts
+=======
+Purpose: Entry point of the Angular application.
+
+Bootstraps the root component (AppComponent) using bootstrapApplication()
+
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+-------------------------------------------------------------------------------------
+1. import { bootstrapApplication } from '@angular/platform-browser';
+This is a built-in function provided by Angular’s platform-browser package.
+
+It replaces the traditional platformBrowserDynamic().bootstrapModule(AppModule) approach used in module-based apps.
+
+Purpose: To bootstrap a standalone component as the root of the Angular application
+
+--------------------------------------------------------------------------------------
+
+2. import { appConfig } from './app/app.config';
+This imports the application configuration from the file you previously defined (app.config.ts).
+
+The appConfig contains providers like routing setup and change detection configuration.
+This config object replaces the providers that were traditionally declared inside NgModule.
+-----------------------------------------------------------------------------------------
+3. import { AppComponent } from './app/app.component';
+This is the root component of your standalone Angular application.
+
+It must be defined with standalone: true
+
+--------------------------------------------------------------------------------------------
+
+4. bootstrapApplication(AppComponent, appConfig)
+This is the core function that boots your app.
+
+It:
+
+Initializes the Angular runtime
+
+Uses AppComponent as the root of the application
+
+Applies all the providers defined in appConfig
+
+-------------------------------------------------------------------------------------------
+
+5. .catch((err) => console.error(err));
+Catches any errors that occur during application bootstrap.
+
+Useful for logging issues if something goes wrong during app initialization, like:
+
+Missing providers
+
+Runtime errors
+
+Incorrect imports
+
+------------------------------------------------------------------------------------------
+.editor.config
+Purpose: Defines consistent coding styles across different editors and IDEs.
+
+Controls: Indentation, charset, line endings, final newline, etc.
+
+----------------------------------------------------------------------------------------
+angular.json
+
+Purpose: Central config file for Angular CLI.
+
+Controls: Build, serve, test, lint, file paths, environments.
+---------------------------------------------------------------------------------------
+
+package.json
+
+Purpose: Manages project dependencies, scripts, and metadata.
+
+Controls: npm packages, versioning, scripts like start, build, etc.
+----------------------------------------------------------------------------------------
+
+tsconfig.app.json
+
+Purpose: TypeScript configuration specifically for the Angular app (not tests or libs).
+
+Extends: tsconfig.json, but fine-tunes for the app source code.
+-------------------------------------------------------------------------------------
+tsconfig.json
+
+Purpose: Base TypeScript configuration for the entire project.
+
+Controls: Compiler options, module resolution, strictness, etc.
+
+Extended by: tsconfig.app.json, tsconfig.spec.json, etc.
+------------------------------------------------------------------------------------
+
+.vscode
+
+Purpose: Stores VS Code-specific project settings.
+
+Helps standardize extensions, debug configs, and build tasks across team members.
+--------------------------------------------------------------------------------------
+extension.json
+
+Purpose: Recommends extensions for the project.
+
+When someone opens the project, VS Code suggests these extensions.
+Helpful for onboarding new developers with the right tools.
+------------------------------------------------------------------------------------
+
+launch.json
+
+Purpose: Configures debugging options.
+
+Defines how VS Code should launch the app (Node.js, Chrome, etc.).
+
+------------------------------------------------------------------------------------
+tasks.json
+
+Purpose: Defines custom build, lint, or run tasks you can run from VS Code's Task Runner.
+
+Often used for running scripts from package.json.
+
+--------------------------------------------------------------------------------------
