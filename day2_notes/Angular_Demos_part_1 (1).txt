@@ -1,0 +1,331 @@
+===================================================
+Demo1: Component
+===================================================
+1. ng new app2
+2. Create a component named as HelloWorld
+ng g c HelloWorld
+3. delete the file helloworld.html
+4. Paste the below element in app.component.html 
+<app-hello-world></app-hello-world>
+5. delete the file hello-world.component.html
+6. change the code in hello-world.component.ts
+
+hello-world.component.ts file
+===========================
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-hello-world',
+  template: `
+  <h2>Hello World</h2>
+  <p>This is my first component!</p>
+  `,
+  styleUrls: ['./hello-world.component.css']
+})
+export class HelloWorldComponent {
+
+}
+
+update app.component.ts file
+=============================
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { HelloWorldComponent } from './hello-world/hello-world.component';
+
+@Component({
+  selector: 'app-root',
+  imports: [HelloWorldComponent],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'app1';
+}
+
+app.component.html
+===================
+<app-hello-world></app-hello-world>
+
+
+7. go to project directory and run in cmd prompt
+
+ng serve --open
+
+
+========================================================================
+Note:
+When Angular renders this component, the resulting DOM looks like this:
+<app-root>
+	<app-hello-world>
+    		<h2>Hello World</h2>
+    		<p>This is my first component!</p>
+	</app-hello-world>
+</app-root>
+
+You can verify the same in the browser:
+
+right click the browser Inspect, select Elements tab and expand the body element.
+
+
+============================================================================
+Demo2. Interpolation
+============================================================================
+
+1. ng g c Interpolation
+2. Place the code in interpolation.component.ts
+========================================
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-interpolation',
+  templateUrl: './interpolation.component.html',
+  styleUrls: ['./interpolation.component.css']
+})
+export class InterpolationComponent {
+   message="welcome to NIIT";
+
+}
+
+3. Place the code in interpolation.component.html
+=================================================    
+<p>{{message}}</p>
+
+4. Add the selector in the root html, App.component.html
+<app-interpolation></app-interpolation>
+
+5. ng serve --open
+
+Note : the use of double curly braces—they instruct Angular to interpolate the contents within them.
+
+You can verify the structure in the browser:
+right click the browser Inspect, select Elements tab and expand the body element.
+
+=========================================================================================
+Demo3: Property bindings, syntax []
+=========================================================================================
+
+Angular also supports property bindings, to help you set values for properties and attributes of HTML elements and pass values to your application's presentation logic.
+1. ng g c propbinding
+2. Place the code in propbinding.component.ts
+===========================================
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-propbinding',
+  templateUrl: './propbinding.component.html',
+  styleUrls: ['./propbinding.component.css']
+})
+export class PropbindingComponent {
+  fontColor = 'blue';
+  sayHelloId = 1;
+  canClick = false;
+  message = 'Hello, World';
+
+}
+
+
+3. Place the code in propbinding.component.html
+====================================
+
+<p
+  [id]="sayHelloId"
+  [style.color]="fontColor">
+  You can set my color in the component!
+</p>
+
+
+4. Add the selector in the root html, App.component.html  
+======================================================
+<app-propbinding></app-propbinding>
+
+5. ng serve --open
+
+Notice the use of the square brackets—that syntax indicates that you're binding the property or attribute to a value in the component class.
+
+You can verify the structure in the browser:
+right click the browser Inspect, select Elements tab and expand the body element.
+
+=========================================================================================
+Demo4: Event Handling
+==========================================================================================
+
+1. ng g c eventhandling
+2. place the code in eventhandling.component.ts
+
+eventhandling.component.ts file
+===============================
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-eventhandling',
+  templateUrl: './eventhandling.component.html',
+  styleUrls: ['./eventhandling.component.css']
+})
+export class EventhandlingComponent {
+  message = 'Hello, World';
+  canClick = false;
+  sayMessage() {
+    alert(this.message);
+  }
+
+}
+
+
+3. place the code in eventhandling.component.html
+
+eventhandling.component.html
+====================================
+
+<button
+  type="button"
+  [disabled]="canClick"
+  (click)="sayMessage()">
+  Trigger alert message
+</button>
+
+
+4. Add the selector in the root html, App.component.html
+========================================================
+<app-eventhandling></app-eventhandling>
+
+5. ng serve --open
+
+You can verify the structure in the browser:
+right click the browser Inspect, select Elements tab and expand the body element.
+
+================================================================
+Demo5: Templates by using directives.
+
+note in higher version for *ngIf please import commonModule for the given component.
+
+================================================================
+
+1. ng g c structuraldirective
+2. Place the code in structuraldirective.component.ts
+structuraldirective.component.ts
+================================
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-structuraldirective',
+  templateUrl: './structuraldirective.component.html',
+  styleUrls: ['./structuraldirective.component.css']
+})
+export class StructuraldirectiveComponent {
+  message = "I'm read only!";
+  canEdit = false;
+
+  onEditClick() {
+    this.canEdit = !this.canEdit;
+    if (this.canEdit) {
+      this.message = 'You can edit me!';
+    } else {
+      this.message = "I'm read only!";
+    }
+  }
+
+}
+
+
+3. Place the code in structuraldirective.component.html 
+
+structuraldirective.component.html
+==================================
+<p>structuraldirective works!</p>
+<h2>Hello World: ngIf!</h2>
+
+<button type="button" (click)="onEditClick()">Make text editable!</button>
+
+<div *ngIf="canEdit; else noEdit">
+    <p>You can edit the following paragraph.</p>
+</div>
+
+<ng-template #noEdit>
+    <p>The following paragraph is read only. Try clicking the button!</p>
+</ng-template>
+
+<p [contentEditable]="canEdit">{{ message }}</p>
+
+
+4. Add the selector in the root html, App.component.html
+========================================================
+<app-structuraldirective></app-structuraldirective>
+
+5. ng serve --open
+
+You can verify the structure in the browser:
+right click the browser Inspect, select Elements tab and expand the body element.
+
+===============================================================
+Demo6: Dependency injection
+===============================================================
+1. ng g s logger
+2. place the code in logger.service.ts
+
+logger.service.ts
+=================
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class LoggerService {
+
+  constructor() { }
+
+  writeCount(count: number) {
+    console.warn(count);
+  }
+
+}
+
+//defines a Logger class. This class contains a writeCount function that logs a number to the console.
+
+3. ng g c loggeruser 
+
+4. place the code in loggeruser.component.ts 
+loggeruser.component.ts
+=========================================
+
+import { Component } from '@angular/core';
+import { LoggerService } from '../logger.service';
+
+
+@Component({
+  selector: 'app-loggeruser',
+  templateUrl: './loggeruser.component.html',
+  styleUrls: ['./loggeruser.component.css']
+})
+export class LoggeruserComponent {
+  count = 0;
+
+  constructor(private loggerService: LoggerService) { } //constructor injection
+
+  onLogMe() {
+    this.loggerService.writeCount(this.count);
+    this.count++;
+  }
+}
+//To access that function, the Logger service is injected into the LoggeruserComponent class by adding private loggerService: LoggerService to the constructor.
+
+5. place the code loggeruser.component.html 
+
+loggeruser.component.html
+=========================
+<button
+  type="button"
+  (click)="onLogMe()">
+  calling Log Message
+</button>
+
+6. Add the selector in the root html, App.component.html
+<app-loggeruser></app-loggeruser>
+
+7. ng serve --open 
+
+// click the button and verify the output in browser console.
+
+==================================================================================
+
+

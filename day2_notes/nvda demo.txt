@@ -1,0 +1,90 @@
+
+https://www.nvaccess.org/
+https://www.nvaccess.org/download/
+
+
+Testing Accessibility Fixes
+
+note: use NVDA - tools -> Speech viewer to prove this demo
+
+example html and css
+===================
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+</a><h1>Lorem ipsum</h1>
+
+<div class="h2">Lorem ipsum dolo </div>
+
+<p> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. <a href="#">Duis sagittis</a> ipsum. Praesent mauris. Fusce nec tellus sed augue semper prota. Mauris massa. Vestibulum lacina arcu eget nulla. Class aptent taciti sociosq.</p>
+
+<div class="h2">Sed cursus ante</div>
+
+<p> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. <a href="#">Praesent libero</a>. Sed cursus ante dapibus diam. Sed nisi. Nulla auis semat nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcua eget nulla. Class aptent taciti sociosq.</p>
+
+</body>
+</html>
+
+
+CSS
+
+.body{
+    font-family: Helvetica, sans-serif;
+    }
+    .h2{
+    font-weight:bold;
+    }
+    
+    
+
+since they're not semantically identified as headings, screen readers don't recognize.
+
+how to solve? accessibility issues
+
+open speech viewer 
+
+navigate the page
+and verify no difference in reading the text which we need as headings.
+
+Remediation:
+
+For each of the <div> elements containg the text "Lorem ipsum dolo" and "Sed cursu ante"
+
+1. Add a role="heading" attribute to the <div> element
+2. Add an aria-lvel="2" attribute to the <div> element
+
+HTML
+</a><h1>Lorem ipsum</h1>
+
+<div role="heading" aria-level="2" class="h2">Lorem ipsum dolo </div>
+
+<p> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. <a href="#">Duis sagittis</a> ipsum. Praesent mauris. Fusce nec tellus sed augue semper prota. Mauris massa. Vestibulum lacina arcu eget nulla. Class aptent taciti sociosq.</p>
+
+<div role="heading" aria-level="2" class="h2">Sed cursus ante</div>
+
+<p> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. <a href="#">Praesent libero</a>. Sed cursus ante dapibus diam. Sed nisi. Nulla auis semat nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcua eget nulla. Class aptent taciti sociosq.</p>
+
+
+CSS
+
+.body{
+font-family: Helvetica, sans-serif;
+}
+.h2{
+font-weight:bold;
+}
+
+verify again
+
+capslock spacebar press H
+
+------------------------------------

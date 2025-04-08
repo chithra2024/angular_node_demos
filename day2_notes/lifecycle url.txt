@@ -1,0 +1,131 @@
+
+1. ng generate component lifecycle-demo
+
+2. Modify the Component Code
+
+lifecycle-demo.component.ts
+===========================
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  DoCheck,
+  AfterContentInit,
+  AfterContentChecked,
+  AfterViewInit,
+  AfterViewChecked,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
+
+
+@Component({
+  selector: 'app-lifecycle-demo',
+  imports: [],
+  templateUrl: './lifecycle-demo.component.html',
+  styleUrl: './lifecycle-demo.component.css'
+})
+export class LifecycleDemoComponent implements 
+OnChanges, OnInit, DoCheck,
+AfterContentInit, AfterContentChecked,
+AfterViewInit, AfterViewChecked, OnDestroy {
+  @Input() inputValue: string = '';
+
+  constructor() {
+    console.log('Constructor');
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log('ngOnChanges', changes);
+  }
+
+  ngOnInit(): void {
+    console.log('ngOnInit');
+  }
+
+  ngDoCheck(): void {
+    console.log('ngDoCheck');
+  }
+
+  ngAfterContentInit(): void {
+    console.log('ngAfterContentInit');
+  }
+
+  ngAfterContentChecked(): void {
+    console.log('ngAfterContentChecked');
+  }
+
+  ngAfterViewInit(): void {
+    console.log('ngAfterViewInit');
+  }
+
+  ngAfterViewChecked(): void {
+    console.log('ngAfterViewChecked');
+  }
+
+  ngOnDestroy(): void {
+    console.log('ngOnDestroy');
+  }
+
+
+}
+
+step 3. modify the html file
+=============================
+<p>lifecycle-demo works!</p>
+<p>Lifecycle Demo Component</p>
+<p>Input value: {{ inputValue }}</p>
+<ng-content></ng-content>
+
+
+Step 4: Use It in the App Component
+===================================
+app.component.ts`
+================
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { LifecycleDemoComponent } from './lifecycle-demo/lifecycle-demo.component';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-root',
+  imports: [LifecycleDemoComponent,CommonModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'lifecycle_demos';
+  show = true;
+  inputText = 'Hello';
+
+  toggle() {
+    this.show = !this.show;
+  }
+
+  changeInput() {
+    this.inputText = 'Updated ' + new Date().toISOString();
+  }
+
+}
+
+app.component.html
+
+<h1>Life cycle demos</h1>
+<button (click)="toggle()">Toggle Component</button>
+<button (click)="changeInput()">Change Input</button>
+<app-lifecycle-demo *ngIf="show" [inputValue]="inputText">
+<span>Projected Content</span>
+</app-lifecycle-demo>
+========================================================================================
+
+in the browser Console
+
+- When the component appears: full lifecycle from constructor to `ngAfterViewChecked`
+- When input changes: `ngOnChanges`, `ngDoCheck`, `ngAfterContentChecked`, `ngAfterViewChecked`
+- When toggle button clicked: `ngOnDestroy`
+
+============================================================================================
+
+https://v17.angular.io/guide/lifecycle-hooks
+==============================================
