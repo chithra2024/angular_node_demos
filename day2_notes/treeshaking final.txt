@@ -1,0 +1,183 @@
+ng new treeshake-demo --no-standalone
+cd treeshake-demo
+ng serve
+
+-------------------------------------------------------------
+src/app
+//note: export and import are ES syntax
+
+// my-library.ts
+export function usedFunction() {
+  console.log('This function is used!');
+}
+
+export function unusedFunction() {
+  console.log('This function is never called.');
+}
+
+--------------------------------------------------
+// app.component.ts
+import { Component } from '@angular/core';
+import { usedFunction } from './my-library';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <p>Check the console!</p>
+  `,
+  styleUrls: ['./app.component.css'],
+})
+export class AppComponent {
+  constructor() {
+    usedFunction();
+  }
+}
+--------------------------------------------------------------------------
+angular.json
+
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "treeshake-demo": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "standalone": false
+        },
+        "@schematics/angular:directive": {
+          "standalone": false
+        },
+        "@schematics/angular:pipe": {
+          "standalone": false
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/treeshake-demo",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "treeshake-demo:build:production"
+            },
+            "development": {
+              "buildTarget": "treeshake-demo:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
+  }
+}
+
+
+----------------------------------------------------------------------------
+ng build --stats-json
+
+----------------------------------------------------------------------------
+ng build --configuration production
+
+----------------------------------------------------------------------------
+
+analyze main.js for unused function
+
+inspect the Bundle:
+
+After the build process completes, navigate to the dist/<your-project-name>/main.<hash>.js file (or the equivalent main bundle file).
+Open this file in a text editor or your browser's developer tools.
+Search for the content of usedFunction and unusedFunction.
+
+Observe the Results:
+
+You should find the code related to usedFunction within the bundle.
+Crucially, the code related to unusedFunction should not be present in the production bundle. This demonstrates that the Angular build process has effectively "shaken" away the unused code.
+If you use source maps, you can verify that the unused function is not present in the source files used by the production bundle.
+You can also use tools like webpack-bundle-analyzer to visually inspect the bundle size and confirm that the unused code is absent.
+
+npm install webpack-bundle-analyzer --save-dev
+-------------------------------------------------------------------------------
+ng build
+
+
+npx webpack-bundle-analyzer dist\<appname>\stats.json
+---------------------------------------------------------------------------------
+
+
+When using the Webpack Bundle Analyzer, the three tabs you typically see are:
+
+Stat: This tab shows the original, unminified, unzipped size of your modules. It represents the size of the code before any optimizations are applied.
+Parsed: This tab displays the size of your modules after they've been parsed by Webpack. Parsing involves converting the code into an abstract syntax tree (AST), which Webpack uses for further processing. This size is generally smaller than the "Stat" size.
+Gzipped: This tab shows the size of your modules after they've been gzipped (compressed). Gzip is a common compression algorithm used to reduce the size of files transmitted over the network. This is the closest representation of the actual size of the code that will be downloaded by users.
+------------------------------------------------------------------------------------

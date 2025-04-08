@@ -1,0 +1,181 @@
+
+Custom configuration
+===========================
+
+npm i @angular-builders/custom-webpack -D
+npm i moment -S
+npm i moment-locales-webpack-plugin -D
+npm i @angular-builders/dev-server -D
+========================================================================
+note: as dev dependencies, and S for save
+==========================================================================
+create 
+custom-webpack.config.js in root
+
+const MomentLocalesPlugin =require('moment-locales-webpack-plugin');
+
+    module.exports ={
+
+plugins: [
+new MomentLocalesPlugin({
+   localesToKeep:['de', 'es', 'fr', 'it'],
+}),
+
+],
+};
+
+
+modify your angular.json
+========================
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "my-angular-app": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-builders/custom-webpack:browser",
+          "options": {
+            "customWebpackConfig": {
+              "path": "./custom-webpack.config.js",
+              "replaceDuplicatePlugins": true
+            },
+            "outputPath": "dist/my-angular-app",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "my-angular-app:build:production"
+            },
+            "development": {
+              "buildTarget": "my-angular-app:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+modify your  app component
+
+import { Component } from '@angular/core';
+import moment  from 'moment';
+
+@Component({
+  selector: 'app-root',
+  imports: [],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent  {
+
+  constructor() {
+
+    moment.locale('fr');  //default is english
+    const currentTimeFR = moment().format('LLLL');
+    console.log(currentTimeFR);
+
+  }
+
+ 
+}
+
+
+
+
+ng serve
+
+
+
+
+This is one of Moment.js's predefined localized formats. Specifically:
+
+'LLLL' gives you a full, readable date and time string in the current locale.
+
+It typically includes:
+
+Full day of the week
+
+Full month name
+
+Day of the month
+
+Year
+
+Time with hours and minutes, often with AM/PM or 24-hour format depending on locale

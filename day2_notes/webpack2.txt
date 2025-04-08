@@ -1,0 +1,298 @@
+bundlePhobia
+web pack bundle analyzer
+source map explorer
+------------------------------------------------
+//npm i lodash
+
+//npm i @types/lodash
+
+npm i --save-dev @types/lodash
+--------------------------------------
+to reduce the size we for 
+
+npm i --save-dev @types/lodash-es
+-----------------------------------------------
+Form handling : Two way data binding, add FormModules in project, syntax [( )]
+=====================================
+MVVM
+----
+Interpolation, syntax {{ }}
+-------------
+Event Handling, syntax ()
+--------------
+app.component.html
+==================
+
+<input type="text" [(ngModel)]="num1" />
+<input type="text" [(ngModel)]="num2"/>
+
+<button (click)="add()">Add</button>
+
+<div>
+{{result}}
+</div>
+
+===================================
+app.component.ts
+================
+import { Component } from '@angular/core';
+import {sum } from 'lodash';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-root',
+  imports: [FormsModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent  {
+
+  num1=0;
+  num2=0;
+  result: number=0;
+  
+  constructor() {
+
+  }
+  add(){
+    this.result = sum([+this.num1,+this.num2]);
+    }
+    
+
+  
+}
+
+
+ng serve
+=====================================
+using tools:
+
+do changes in angular.json
+
+by changing application to browser and browser to main
+
+  "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/webpack2",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+           
+
+
+ng build --stats-json
+go to dist folder
+
+file called stats.json
+
+npx webpack-bundle-analyzer dist\webpack2\stats.json
+
+click pin
+
+stat -> much higher
+parsed -> is actual size
+gzipped -> short
+
+filter
+main.js
+
+Gzipped
+select main <
+mouse overon top of that it gives size
+
+lodash is common js module size is 60kb
+
+in program used small function.
+
+it takes lot of size.
+
+
+fix the problem
+------------
+npm i lodash-es
+or
+npm i -D @types/loadash-es
+
+change the import statement
+
+import {sum} from 'lodash-es';
+
+ng build --stats-json
+
+
+or in angular.json
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "my-angular-app": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-builders/custom-webpack:browser",
+          "options": {
+            "customWebpackConfig": {
+              "path": "./custom-webpack.config.js",
+              "replaceDuplicatePlugins": true
+            },
+            "outputPath": "dist/my-angular-app",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": [],
+            "statsJson": true
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "my-angular-app:build:production"
+            },
+            "development": {
+              "buildTarget": "my-angular-app:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
+  }
+}
+
+ng build
+
+
+npx webpack-bundle-analyzer dist\my-angular-app\stats.json
+
+
+select Parsed
+now go and search for 
+
+lodash
+
+size will be very low.
+
+Total size is reduced.
+
+note: enable
+show content of concatenated modules(inaccurate) 
+======================================
+
+source map explorer
+
+js and css file
+
+in angular.json
+1.
+"development":{
+
+"buildOptimizer":false,
+
+...
+"sourceMap":true,
+"namedChunks":true
+}
+
+2.
+"production":{
+"sourceMap":true,
+
+
+"budgets":[
+
+3. ng build
+
+4. dist/ *js.map files has been created
+
+
+5. npx source-map-explorer dist\webpack2\*.js
+
+yes
+
+ensure all .js files available under dist\my-angular-app 
+6. view different bundles
+bundles drop down
+
+view similar results
+
+7.
+npx source-map-explorer dist\my-angular-app\*.css
+
+in the site
+===========
+bundlephobia.com
+
+loadsh
+size of any npm page
+
+loadsh-es
+
+moment
+(date and time manipulation)
+
+mathjs
+
