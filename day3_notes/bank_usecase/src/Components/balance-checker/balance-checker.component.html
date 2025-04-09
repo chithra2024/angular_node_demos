@@ -1,0 +1,38 @@
+<div class="container mt-4">
+  <h2 appHighlight>Balance Checker</h2>
+  <form [formGroup]="balanceForm" (ngSubmit)="checkBalance()">
+    <div class="mb-3">
+      <label for="accountNumber" class="form-label">Account Number</label>
+      <input
+        type="number"
+        id="accountNumber"
+        class="form-control"
+        formControlName="accountNumber"
+      />
+      
+      
+      @if (balanceForm.get('accountNumber')?.invalid && balanceForm.get('accountNumber')?.touched) {
+        <div class="text-danger">
+          Account number is required and must be valid.
+        </div>
+      }
+    </div>
+    
+    <button type="submit" class="btn btn-primary" [disabled]="balanceForm.invalid">
+      Check Balance
+    </button>
+  </form>
+
+ 
+  @if (balance != null) {
+    <div class="mt-4 alert alert-info">
+      Current Balance: <strong>${{ balance }}</strong>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="mt-4 alert alert-danger">
+      <p>{{ errorMessage }}</p>
+    </div>
+  }
+</div>
