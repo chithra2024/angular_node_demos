@@ -1,0 +1,674 @@
+Angular Routing
+===============
+Navigation in Multipage vs SPA
+Multipage -> nav is between web pages
+SPA -> nav is between  views
+Multipage -> web page load
+SPA -> view to change new set of data not an complete web page load
+
+Library for routing :
+1. define routes using RouterModule 
+standalone application: app.routes.ts
+2. use RouterOutlet directive -> load component dynamic
+3. to access route information ActivatedRoute
+-------------------------------------------------------
+Ex1:
+ABC company:
+Home
+About us
+Products
+Contact 
+Service
+==============================================================================
+Ex2 : CRUD (DB) operation with Json data
+Insert
+Delete
+Update
+Read
+==============================================================================
+URL in Angular application
+default : http://localhost:4200/
+To navigate the below view, how do you  define the url ?
+Home
+About us
+Products
+Contact 
+Service
+Ans : 
+http://localhost:4200/home for Home view
+http://localhost:4200/product for Products view
+http://localhost:4200/contact for Contacts view
+http://localhost:4200/service for Service view
+======================================================
+Demo1:
+create 4 component
+3 for navigation :
+1. home
+2. about
+3. contact
+one for placeholder for the above navigation
+4. header
+================================================================
+app.component.ts
+================
+import { Component } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './header/header.component';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet,HeaderComponent],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'routingdemo';
+}
+
+app.component.html
+==================
+<app-header></app-header>
+<router-outlet></router-outlet>
+
+
+header.component.ts
+===================
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-header',
+  imports: [RouterLink],
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css'
+})
+export class HeaderComponent {
+
+}
+
+
+header.component.html
+=====================
+<p>header works!</p>
+<nav>
+    <a routerLink="home">Home</a> <br/>
+    <a routerLink="about">About</a> <br/>
+    <a routerLink="contact">Contact</a> <br/>
+    </nav>
+
+app.routes.ts
+=============
+import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { ContactComponent } from './contact/contact.component';
+import { AboutComponent } from './about/about.component';
+
+export const routes: Routes = [
+
+
+    {
+        path:"home",
+        component:HomeComponent
+        },
+        {
+          path:"contact",
+          component:ContactComponent
+          },
+          {
+            path:"about",
+            component:AboutComponent
+            }
+];
+
+=================================================================
+ng serve --open
+=================================================================
+Demo2: to check wrong url & default nav
+========================================
+1. create error component, ng g c error
+2. add image under src/assets folder error.jpg
+3. add the below route info in app.routes.ts
+import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { ContactComponent } from './contact/contact.component';
+import { AboutComponent } from './about/about.component';
+import { ErrorComponent } from './error/error.component';
+
+export const routes: Routes = [
+
+
+    {
+        path:"",
+        component:HomeComponent
+        },
+        {
+          path:"contact",
+          component:ContactComponent
+          },
+          {
+            path:"about",
+            component:AboutComponent
+            },
+            {
+                path:'**',
+                component:ErrorComponent
+              }
+];
+
+4. place img tag in error.component.html
+
+<h1 class="error-message">404 - Page Not Found</h1>
+<p class="error-description">Sorry, the page you are looking for does not exist.</p>
+
+5.ng serve --open
+// always keep default path in top and error in the last.
+to check error localhost:4200/hom
+or
+localhost:4200/home/cc
+======================================================================================
+Demo4: How do you pass parameter ?
+1. we define the parameter or set the parameter -> app-routing.module.ts or app.routes.ts file is used
+2. optional - we will use navigation material schematics, this will forward to contact component,additional data which is parameter.  
+3. In contact component can used to access the parameter -> contact component.ts
+4. app.routes.ts file to include param
+{
+  path:"contact/:id",
+  component:ContactComponent
+  },
+5. ng g s contactservice
+contactservice.ts
+import { Injectable } from '@angular/core';
+@Injectable({
+  providedIn: 'root'
+})
+export class ContactserviceService {
+  constructor() { }
+contacts=[
+{
+id:103,
+name:"sukriti"
+},
+{
+  id:101,
+  name:"joinal"
+  },
+  {
+    id:102,
+    name:"anjali"
+    },
+    {
+      id:104,
+      name:"gowtham"
+      },
+]
+}
+6. In contact.component.html
+<p>contact works!</p>
+{{output}}
+<br/>
+{{names | json}}
+{{names.id}}
+<br/>
+{{names.name}}
+7. In contact.component.ts
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { ContactserviceService } from '../contactservice.service';
+
+@Component({
+  selector: 'app-contact',
+  imports: [CommonModule],
+  templateUrl: './contact.component.html',
+  styleUrl: './contact.component.css'
+})
+export class ContactComponent implements OnInit, OnDestroy{
+  constructor(private activatedRoute:ActivatedRoute, private contactService:ContactserviceService ){}
+  output:any;  
+   names:any;
+  routeParam:any;
+  ngOnInit(): void {
+    //throw new Error('Method not implemented.');
+ //this.output=  this.activatedRoute.snapshot.paramMap.get('id'); // first way
+  // this.output=this.activatedRoute.snapshot.params['id']; // second way
+  // this.names=this.contactService.contacts.find(x=>x.id==this.output);
+  // console.log(this.names);
+  this.routeParam=this.activatedRoute.paramMap.subscribe((param)=>{ // third way
+    this.output=param.get('id');
+    this.names=this.contactService.contacts.find(x=>x.id==this.output);
+    })
+  }
+  ngOnDestroy(): void {
+//    throw new Error('Method not implemented.');
+this.routeParam.unsubscribe();
+  
+}
+}
+=======================================================================================
+go to your header.component.html
+
+Changes in navbar component, to pass value go to nav component 
+<p>header works!</p>
+<nav>
+    <a routerLink="home">Home</a> <br/>
+    <a routerLink="about">About</a> <br/>
+    <a [routerLink]="['/contact/',101]">contact</a>
+
+    </nav>
+
+and add commom module in contact component
+
+@Component({
+  selector: 'app-contact',
+  imports: [CommonModule],
+  templateUrl: './contact.component.html',
+  styleUrl: './contact.component.css'
+})
+
+8. ng serve --open
+
+=======================================================================================
+Demo5. nested routes
+1. ng g component niit/ourCompany
+2. ng g component niit/ourEmployees
+3. In app.routes.ts
+import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { ContactComponent } from './contact/contact.component';
+import { AboutComponent } from './about/about.component';
+import { ErrorComponent } from './error/error.component';
+import { OurEmployeesComponent } from './niit/our-employees/our-employees.component';
+import { OurCompanyComponent } from './niit/our-company/our-company.component';
+
+export const routes: Routes = [
+
+
+    {
+        path:"",
+        component:HomeComponent
+        },
+        {
+          path:"contact",
+          component:ContactComponent
+          },
+          
+            {
+                path:"contact/:id",
+                component:ContactComponent
+                },
+                {
+                    // path:"about",
+                    // component:AboutComponent
+                    path: "about",
+                    children: [
+                      {
+                        path: "",
+                        component: AboutComponent,
+                      },
+                      {
+                        path: "our_employees",
+                        component: OurEmployeesComponent,
+                      },
+                      {
+                        path: "our_company",
+                        component: OurCompanyComponent,
+                      },
+                    ],
+                  }, 
+            {
+                path:'**',
+                component:ErrorComponent
+              }
+];
+
+
+====================================================================================
+4. In about.component.html
+<p>about works!</p>
+<a routerLink="/about/our_employees">Our Employees</a>
+<br>
+<a routerLink="/about/our_company">Our Company</a>
+
+about.component.ts
+
+import { Component } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-about',
+  imports: [RouterLink],
+  templateUrl: './about.component.html',
+  styleUrl: './about.component.css'
+})
+export class AboutComponent {
+
+}
+
+=======================================================================================
+5. our-employees.component.html
+<p>our-employees works!</p>
+<a routerLink="/about">Back</a>
+
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-our-employees',
+  imports: [RouterLink],
+  templateUrl: './our-employees.component.html',
+  styleUrl: './our-employees.component.css'
+})
+export class OurEmployeesComponent {
+
+}
+
+========================================================================
+6. our-company.component.html
+<p>our-company works!</p>
+<a routerLink="/about">Back</a>
+import { Component } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-our-company',
+  imports: [RouterLink],
+  templateUrl: './our-company.component.html',
+  styleUrl: './our-company.component.css'
+})
+export class OurCompanyComponent {
+
+}
+
+===========================================================================
+7 ng serve --open
+http://localhost:4200/about
+=======================================================================
+Demo6: nav thru method - optional 
+==================================
+In about.component.html
+<p>about works!</p>
+<a routerLink="/about/our_employees">Our Employees</a>
+<br>
+<a routerLink="/about/our_company">Our Company</a>
+<button type="button"  (click)="navigateToAccount()">Home</button>
+In about.component.ts
+import { Router } from '@angular/router';
+export class AboutComponent {
+  constructor(private router: Router) { }
+  navigateToAccount():void{
+    this.router.navigate(['/home']);
+  }
+}
+=====================================================================
+Angular Guard
+=============
+case study 1:  Filling the form 
+===========================
+Menu -> Home, Contact, About, Service
+============================================
+contact form menu
+====================
+fname -> saravanan
+lastname
+country
+=============================================
+Before submiting the contact form, by mistake if user click the other item in the nav bar 
+what should be the response?
+
+---------------------------------------------------------------------------------------------
+Angular Routing Guard -> confirm box(changes you made may not  be saved)-> ok or cancel
+=========================================================================================
+case study 2 : allow the user to see order history without login ?
+Guard (security) -> checking authentication and providing authorization
+==========================================================================================
+Angular Routing Guard :
+Example Case 1 ->  When User is not filled the given form but by mistake Nav click, we need to caution the user 
+Example Case 2 -> we need to check for authentication and then authorization 
+Example Case 3 -> To ensure data is available before a part of application is accessed, Async prog
+==================================================================================================
+Example live website for SPA : GitHub, Gmail, Airbnb, Facebook
+====================================================================================================
+Nav in Angular happens between views
+====================================================================================================
+SPA-> Design pattern (SRP / DRY )
+==================================================================================================
+Angular -> Component based
+=================================================================================================
+Angular Routing -> Integration
+=================================================================================================
+case study
+Login component
+===============
+Menu bar / side bar 
+1. For login - view1 is created 
+Validation is mandate.
+when using submit button
+2. For success - view2 is created
+3. For failure - view3 is created
+================================================================================================
+Which file holds routes info ?
+app-routing.module.ts
+================================================================================================
+Guard is just like another service
+We can switch on or off at any time
+=================================================================================================
+Guard method will return either boolean or UrlTree
+================================================================================================
+Types:
+canActivate
+CanActivateChild
+CanDeactivate
+CanLoad
+================================
+CanMatch
+================================================================================================
+ng g g <guard-name>
+=================================================================================================
+Angular is progressive based web application
+================================================================================================
+Demo1: canActivate
+==================
+1. ng g s auth
+2. In auth.service.ts
+import { Injectable } from '@angular/core';
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  constructor() { }
+  loggedIn :boolean=false;
+  // login and logout method used by login or any component to set authentication
+    login(){
+      this.loggedIn=true;
+    }
+  logout(){
+    this.loggedIn=false;
+  }
+    //Isathenticated method used by Guard
+    IsAuthenticated():boolean{
+      return this.loggedIn;
+    }
+}
+3. ng g g canactivate
+select canActivate
+4. In canActivate.guard.ts
+import { CanActivateFn } from '@angular/router';
+import { AuthService } from './auth.service';
+import { inject } from '@angular/core';
+export const canactivateGuard: CanActivateFn = (route, state):boolean => {
+  const authService=inject(AuthService);
+  return  authService.IsAuthenticated();
+};
+5. In header.component.html
+      <span>routingExample</span>
+      <span>
+        <button (click)="login()"><a>login</a></button>
+        <button (click)="logout()"><a>logout</a></button>
+       </span>
+6. In header.component.ts
+    constructor(private authService: AuthService){}
+    login(){
+      this.authService.login();
+      }
+      logout(){
+      this.authService.logout();
+      }
+7. In app.routes.ts
+   {
+          path: "", canActivate:[canactivateGuard],
+          component: AboutComponent,
+        },
+
+complete code given:
+====================
+import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { ContactComponent } from './contact/contact.component';
+import { AboutComponent } from './about/about.component';
+import { ErrorComponent } from './error/error.component';
+import { OurEmployeesComponent } from './niit/our-employees/our-employees.component';
+import { OurCompanyComponent } from './niit/our-company/our-company.component';
+import { canactivateGuard } from './canactivate.guard';
+
+export const routes: Routes = [
+
+
+    {
+        path:"",
+        component:HomeComponent
+        },
+        {
+          path:"contact",
+          component:ContactComponent
+          },
+          
+            {
+                path:"contact/:id",
+                component:ContactComponent
+                },
+                {
+                    // path:"about",
+                    // component:AboutComponent
+                    path: "about",
+                    children: [
+                      {
+                        path: "", canActivate:[canactivateGuard],
+                        component: AboutComponent,
+                      },
+                      {
+                        path: "our_employees",
+                        component: OurEmployeesComponent,
+                      },
+                      {
+                        path: "our_company",
+                        component: OurCompanyComponent,
+                      },
+                    ],
+                  }, 
+            {
+                path:'**',
+                component:ErrorComponent
+              }
+];
+
+
+8. ng serve --open
+======================================================================================
+Demo2: canActivateChild - optional
+==================================
+1. ng g g canActivateChild     
+2. In canActivateChild.guard.ts
+import { inject } from '@angular/core';
+import { CanActivateChildFn } from '@angular/router';
+import { AuthService } from './auth.service';
+export const canActivateChildGuard: CanActivateChildFn = (childRoute, state):boolean => {
+  const authService=inject(AuthService);
+  return authService.IsAuthenticated();
+};
+3. In app.routes.ts
+  {
+    // path:"about",
+    // component:AboutComponent
+    path: "about", canActivateChild:[canActivateChildGuard],
+    children: [
+      {
+        path: "", 
+        component: AboutComponent,
+      },
+      {
+        path: "our_employees",
+        component: OurEmployeesComponent,
+      },
+      {
+        path: "our_company",
+        component: OurCompanyComponent,
+      },
+    ],
+  }, 
+4. ng serve --open
+==========================================================================
+Demo3: canDeactivate - optional
+==================================
+1. ng g g canDeactivate
+2. In canDeactiate.guard.ts
+import { ActivatedRouteSnapshot, CanDeactivateFn, RouterStateSnapshot } from '@angular/router';
+import { AboutComponent } from './about/about.component';
+export const canDeactivateGuard: CanDeactivateFn<AboutComponent> = (component:AboutComponent, currentRoute: ActivatedRouteSnapshot, currentState: RouterStateSnapshot, nextState?: RouterStateSnapshot):boolean => {
+  console.log("calling");
+  return component.canExit();
+};
+3. In about.component.html
+<label for="fName">First Name</label>
+<input type="text" [(ngModel)]="fName"> <br/>
+<label for="lName">Last Name</label>
+<input type="text" [(ngModel)]="lName"> <br/>
+<label for="subject">Subject</label>
+<input type="text" [(ngModel)]="subject"> 
+<br/>
+<button (click)="submit()">submit</button>
+4. In about.component.ts
+fName:any;
+  lName:any;
+  subject:any;
+  submit(){
+    console.log(this.fName+" "+this.lName+" "+this.subject);
+  }
+  canExit():any{
+  if(this.fName||this.lName||this.subject)
+  {
+    return confirm('you have unsaved changes');
+  }
+  else
+  {
+    return true;
+  }
+   }
+ 
+5. In app.routes.ts
+ {
+          path: "", canDeactivate:[canDeactivateGuard],
+          component: AboutComponent,
+        },
+
+6. ng serve --open
+===========================================================================
+Demo4: canMatch - optional
+==========================
+1. ng g g canMatch
+2. In canMatch.guard.ts
+import { CanMatchFn } from '@angular/router';
+export const canMatchGuard: CanMatchFn = (route, segments) => {
+  return true;  // you can use later JWT token here
+};
+3. In app.routes.ts
+  {
+    path:"contact/:id", canMatch:[canMatchGuard],
+    component:ContactComponent
+    },
+// check in guard by replacing with false.
+4. ng serve --open
+==============================================================================
+
+
+
+
+

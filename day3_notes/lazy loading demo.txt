@@ -1,0 +1,85 @@
+Angular Lazy Loading App
+========================
+
+
+ng g c home/home
+ng g c admin/admin
+
+admin.component.html
+<p>admin works!</p>
+<h3>Admin Component - Lazy Loaded Without Module</h3>
+
+home.component.html
+<p>home works!</p>
+<h3>Welcome to the Home Page</h3>
+
+
+app.component.html
+<h2>Angular 17+ Lazy Loading Demo</h2>
+<ul>
+  <li><a routerLink="/admin" routerLinkActive="active">Admin</a></li>
+  </ul>
+<router-outlet></router-outlet>
+
+
+app.component.ts
+================
+import { Component } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet, RouterLink],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'lazyver17';
+}
+
+app.routes.ts
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+    {
+      path: '',
+      pathMatch: 'full',
+      loadComponent() {
+        return import('./home/home/home.component').then(m => m.HomeComponent);
+      },
+    },
+    {
+      path: 'admin',
+      loadComponent() {
+        return import('./admin/admin/admin.component').then(m => m.AdminComponent);
+      },
+    }    
+
+
+];
+
+
+app.config.ts
+=============
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+
+main.ts
+=======
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
