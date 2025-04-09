@@ -1,0 +1,565 @@
+Angular Form
+==============
+is it possible to check whether the entries made in form fields are valid prior to the form submission?
+
+Yes
+==================================================================================
+What are types of Angular Form ?
+
+1. Template driven form -> rely on directives in the template to create and manipulate the underlying object model
+2. Reactive form -> provide direct,explicit  access to the underlying forms object model
+
+In template driven form
+========================
+
+FormControl
+
+Template:
+
+In Template-Driven Forms, FormControl is not explicitly used as a class. Instead, Angular infers the form controls based on the form elements in the template. For example, if you have an input field with ngModel directive, Angular automatically creates a corresponding form control.
+html
+<!-- Template-Driven Form Example -->
+<form #myForm="ngForm">
+  <input type="text" name="username" ngModel required>
+</form>
+
+
+FormGroup:
+
+In Template-Driven Forms, a form group is also not explicitly instantiated. Instead, Angular creates an implicit form group based on the <form> element. The ngModelGroup directive can be used to create nested form groups.
+html
+Copy code
+<!-- Template-Driven Form with ngModelGroup Example -->
+<form #myForm="ngForm">
+  <div ngModelGroup="user">
+    <input type="text" name="username" ngModel required>
+    <input type="password" name="password" ngModel required>
+  </div>
+</form>
+
+
+
+
+
+FormArray
+
+Template-Driven Forms don't have a direct equivalent to FormArray. However, you can use ngFor with ngModel to iterate over a collection of form controls.
+html
+Copy code
+<!-- Template-Driven Form with ngFor Example -->
+<form #myForm="ngForm">
+  <div *ngFor="let item of items; let i = index">
+    <input type="text" [name]="'item' + i" ngModel required>
+  </div>
+</form>
+
+ControlValueAccessor (bridge between FormControl instance and native DOM)
+
+In Template-Driven Forms, the concept of ControlValueAccessor is not used directly. Angular's ngModel directive provides a two-way data binding mechanism, handling the communication between the template and the component class.
+html
+Copy code
+<!-- Template-Driven Form with ngModel Example -->
+<form #myForm="ngForm">
+  <input type="text" name="username" ngModel [(ngModel)]="model.username" required>
+</form>
+
+=================================================================================
+Template driven form : implicit
+(The directive NgModel creates and manges FromControl instances for a given form element)
+
+builtin validators
+custom validators
+
+
+1. we add library in app.module.ts file
+
+import
+FormsModule
+
+add in component itself instead instead of module.ts
+
+2. In app.component.ts 
+two way data binding [(ngModel)]
+
+Model -> View
+View -> Model
+
+ex: email list signup form or simple form
+
+Validation -> track value changes
+
+FormControl
+FormGroup
+FormArray
+ControlValueAccessor (bridge between FormControl instance and native DOM)
+
+
+source of truth is template-> Implicit
+
+================================================================================
+Demo1 : Template driven form
+
+1. ng new formsdemo
+
+2.  From states, True when?
+
+Pristine -> The user has not modified the control
+Dirty -> The user has modified the control
+Touched -> The user has interacted with form control ex: click or focus
+UnTouched -> The form control has not been interaced with by the user
+Valid -> The form control meets the validation rules defined in the application
+InValid -> The form control values does not meets the validation rules defined in the application
+
+1.Template driven form.
+add FormsModule in app.component.ts
+
+2.
+add bootstrap path in styles.css
+
+@import 
+url('https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css');
+
+
+
+3. In app.component.html
+
+<h1>Welcome to RPS</h1>
+
+<label for="name">Name</label>
+
+<input class="form-control" type="text" required name="name"
+[(ngModel)]="model.name" id="name" #name="ngModel">
+
+<div [hidden]="name.valid || name.pristine " class="alert alert-danger">
+  Field is invalid
+</div> 
+
+<h1>States of above field</h1>
+<p> Is Valid -- {{name.valid}}</p>
+<p> Is Pristine -- {{name.pristine}}</p>
+<p> Is Dirty -- {{name.dirty}}</p>
+<p> Is touched -- {{name.touched}}</p>
+
+5. In app.component.ts
+model = {
+    name: ''
+    
+  };
+
+
+//run once - ng serve
+
+
+hint
+====
+
+<div [hidden]="name.valid && name.pristine " class="alert alert-danger">
+  Field is invalid
+</div> 
+
+Note:
+<input class="form-control" type="text" required name="name"
+[(ngModel)]="model.name" id="name" #name="ngModel">
+
+// template variable given in element level
+
+<form (ngSubmit)="onSubmit()" #myForm="ngForm">
+
+// template variable given in form level
+
+When you will enable the submit button in the given form ?
+
+if all the form elements has no error.
+
+=========================================================================================
+Demo2: 
+=====
+1. In app.component.html
+
+<h1>States of given field</h1>
+<p> Is Valid -- {{name.valid}}</p>
+<p> Is Pristine -- {{name.pristine}}</p>
+<p> Is Dirty -- {{name.dirty}}</p>
+<p> Is touched -- {{name.touched}}</p> 
+
+<div class="container">
+  <div [hidden]="submitted">
+      <h2>Choose your favorite primary color</h2>
+      <form  (submit)="onSubmit()" #name="ngForm">
+          <div class="form-group">
+              <label for="color">Favorite Color</label>
+              <input class="form-control" type="text"  required name="name" [(ngModel)]="colorForm.color" id="color">
+
+              <div [hidden]="name.valid || name.pristine" class="alert alert-danger">Color Field is invalid
+              </div>
+          </div>
+          <button type="submit" class="btn btn-success" [disabled]="!name.valid">Submit</button>
+          <button type="button" class="btn btn-default" (click)="newColor()">Reset</button>
+      </form>
+  </div>
+ 
+ <div [hidden]="!submitted">
+      <h2>Your favorite primary color is {{colorForm.color}}</h2>
+  </div>
+  
+=========================================================================
+2. In app.component.ts
+
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-root',
+  imports: [FormsModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'formsdemo';
+  colorForm: any;
+
+  submitted=false;
+  
+  constructor() {
+    this.colorForm = {
+      color: "Red"
+    };
+  }
+  
+  
+  onSubmit() {
+    console.log(this.colorForm);
+    this.submitted=true;
+  }
+  
+  
+   newColor(){
+     this.colorForm={
+       color:" "
+     };
+     }
+
+}
+
+================================================================
+hint:
+
+<form  (submit)="onSubmit()" #name="ngForm">
+
+or
+
+<form  (ngSubmit)="onSubmit()" #name="ngForm">
+
+but if we use some other name it will not work
+
+  <form  (ngsubmit)="onSubmit()" #name="ngForm">
+
+========================================================================================
+Events mostly used in Angular
+
+Try implementing these events
+==============================
+Event name &	Description
+
+(click)	
+The click event occurs when an element is clicked.
+
+(change)	
+The change event is triggered when change occurs on the binding elements, like select, Textarea, input, and other elements.
+
+(dblclick)	
+The double-click event occurs when an element is clicked two times.
+
+(blur)	
+The blur event fires when an element has lost focus. 
+
+(submit)	
+The submit event fire when clicking on the button or inputting with type submit.
+
+(focus)	
+The focus event fires when an element has received focus
+
+(scroll)	
+The scroll event fires when the document view has been scrolled.
+
+(keyup)	
+When a user presses and releases a key, an event occurs and is mostly used with input fields. It is one of the keyboard events.
+
+(keydown)	
+The keydown event is fired when a key is pressed. It is one of the keyboard events.
+
+(keypress)	 
+The keypress event is fired when a key that produces a character value is pressed down. It is one of the keyboard events.
+
+(mousedown)	
+The mousedown event is fired at an Element when a pointing device button is pressed while the pointer is inside the element and is a mouse event.
+
+(mouseup)	
+The mouseup event occurs when a user releases a mouse button over an element and is a mouse event.
+
+(mouseenter)	
+The mouseenter event occurs when the mouse pointer is moved onto an element and is a mouse event.
+
+(mouseleave)	
+The mouseleave event occurs when the mouse pointer is moved out of an element and is a mouse event.
+
+(mousemove)	
+The mousemove event occurs when the pointer is moving while it is over an element and is a mouse event.
+
+(mouseover)	
+The mouseover event occurs when the mouse pointer is over the selected element and is a mouse event.
+
+
+(copy)	
+The copy event occurs when the user copies the content of an element. 
+
+(paste)	
+The past event occurs when the user pastes the content of an element. 
+
+(cut)	
+The cut event occurs when the user cuts the content of an element. 
+
+(drag)	
+The drag event occurs when an element or text selection is being dragged
+
+(drop)	
+The drop event occurs when dragged data is dropped.
+
+(dragover)	
+The dragover event occurs when a draggable element or text selection is being dragged over a valid drop target. 
+
+(input)	
+The input event occurs when an element gets user input. 
+
+
+====================================================================================
+Reactive Form:
+==============
+reactive form -> 
+validation logic is removed from the template so it is clean
+no data binding is done
+immutuable
+add elements dynamic
+easy for unit test because logic (validation) resides inside our component 
+explicit to manage the state
+change gives new state
+Observable stream
+sync access thru Observable stream
+==========================================================================
+Reactive Form -> Model - Driven Forms
+
+custom validation ?
+
+In template driven form -> creating directives
+In reactive form -> creating functions
+
+FormControl:
+
+FormControl represents a single input field in a form. It tracks the value and validation status of an individual form control. You can instantiate a FormControl with an initial value and an array of validators.
+
+import { FormControl, Validators } from '@angular/forms';
+
+const control = new FormControl('initial value', Validators.required);
+
+
+FormGroup:
+
+FormGroup is a collection of FormControl instances that represent a form as a group. It's used to manage the values and validation status of a group of controls. You can instantiate a FormGroup by providing a JavaScript object where each key corresponds to a control name and the value is either a FormControl, a nested FormGroup, or a FormArray.
+
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+const formGroup = new FormGroup({
+  username: new FormControl('', Validators.required),
+  password: new FormControl('', Validators.required),
+});
+
+
+FormArray:
+
+FormArray is an ordered list of AbstractControl instances (either FormControl, FormGroup, or nested FormArray). It's used when you have a dynamic list of form controls. You can instantiate a FormArray with an initial set of controls.
+
+import { FormArray, FormControl, Validators } from '@angular/forms';
+
+const formArray = new FormArray([
+  new FormControl('item 1', Validators.required),
+  new FormControl('item 2', Validators.required),
+]);
+
+
+ControlValueAccessor:
+
+ControlValueAccessor is an interface that provides a way for Angular to communicate with a custom form control. If you create a custom form control (e.g., a date picker, color picker), implementing this interface allows your control to integrate seamlessly with the Angular forms API.
+The interface includes methods like writeValue, registerOnChange, and registerOnTouched, which you need to implement in your custom control.
+
+import { ControlValueAccessor } from '@angular/forms';
+
+class CustomControl implements ControlValueAccessor {
+  // Implement methods from ControlValueAccessor interface
+}
+
+=============================================================================
+Demo1:
+
+ng g c reactiveform
+
+add the reference in app.component.html
+
+  <app-reactiveform></app-reactiveform>
+
+imports the same in app.component.ts
+
+
+@Component({
+  selector: 'app-root',
+  imports: [FormsModule,ReactiveformComponent],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+
+
+1. add ReactiveFormsModule in reactiveform.component.ts
+
+
+@Component({
+  selector: 'app-reactiveform',
+  imports: [ReactiveFormsModule],
+  templateUrl: './reactiveform.component.html',
+  styleUrl: './reactiveform.component.css'
+})
+
+	  
+
+4. In reactive.component.html
+
+<p>reactivecomp works!</p>
+<label for="name1"> Name:</label>
+    <input type="text" id="name" [formControl]="name1">
+    
+    <p> Value: {{name1.value}}
+    </p>
+    
+    <button (click)="updateName()">updateName</button>
+
+
+5. In reactive.component.ts
+
+import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-reactiveform',
+  imports: [ReactiveFormsModule],
+  templateUrl: './reactiveform.component.html',
+  styleUrl: './reactiveform.component.css'
+})
+export class ReactiveformComponent {
+  name1= new FormControl('');
+
+  updateName(){
+  this.name1.setValue('Nancy');
+  }
+  
+
+}
+
+6. ng serve --open
+=======================================================
+Difference between both: 
+
+1. Template -  data flow - async, custom validation - directive, setup - Implicit, data model -unstructured and mutable     
+2. Reactive - data flow - sync,  custom validation - function,  setup - Explicit, data model - 
+structured and immutable
+
+Objective:
+
+1. How will you validate the input in reactive form
+2. Give complete form details by submiting the form in reactive 
+3. Custom validation using reactive form
+
+Reactive :
+
+1. we create FormControl instance for a specific form element  
+2. value property is used for display
+3. setValue method is used to update the  specific form element
+4. patchValue method is used to update the set of form element values
+
+control value accessor is a bridge (view to model) and (model to view)
+
+Form data will be taken in Json format.
+
+=================================================================
+
+Demo2:
+
+In reactivecomp.component.ts
+
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-reactiveform',
+  imports: [ReactiveFormsModule,CommonModule],
+  templateUrl: './reactiveform.component.html',
+  styleUrl: './reactiveform.component.css'
+})
+export class ReactiveformComponent implements OnInit{
+  myGroup:any;
+
+  ngOnInit(): void {
+//    throw new Error('Method not implemented.');
+this.myGroup=new FormGroup({
+  firstName:new FormControl('',[
+    Validators.required,Validators.minLength(4)])
+  
+    });
+   
+}
+
+get firstName() {return this.myGroup.get('firstName')}
+  
+
+
+
+  name1= new FormControl('');
+
+updateName(){
+this.name1.setValue('Nancy');
+}
+
+}
+  
+
+
+
+============================================================
+In reactivecomp.component.html
+
+<p>reactivecomp works!</p>
+<label for="name1"> Name:</label>
+    <input type="text" id="name" [formControl]="name1">
+    
+    <p> Value: {{name1.value}}
+    </p>
+    
+    <button (click)="updateName()">updateName</button>
+
+    <h1>Welcome to RPS</h1>
+
+<label for="name">Name</label>
+<div [formGroup]="myGroup">
+<input  type="text" formControlName="firstName" id="name" class="form-control">
+<div *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" class="alert alert-danger">
+<div *ngIf="firstName.errors?.['required']">
+  Name is required
+</div>
+<div *ngIf="firstName.errors?.['minlength']">
+  Name must be at least 4 characters long
+</div>
+</div>
+</div> 
+
+
+
+// comment get method and view for errors on learning
+===============================================================
