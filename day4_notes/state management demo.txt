@@ -1,0 +1,97 @@
+In Angular, services allow components to share data efficiently. 
+Instead of passing data manually between components using `@Input` and `@Output`, we use a service as a single source of truth.
+
+Key Benefits:
+- Centralized data management  
+- Improved code maintainability  
+- Easy scalability
+
+Demo1:
+ng new angular-state-management
+cd angular-state-management
+ng serve
+
+ng generate service services/user
+-------------------------------------------------------------------------------------------------
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  // Step 1: Create a private BehaviorSubject
+  private userSource = new BehaviorSubject<string>('Guest');
+
+  // Step 2: Expose an observable
+  currentUser = this.userSource.asObservable();
+
+  constructor() {}
+
+  // Step 3: Method to update the user
+  updateUser(name: string) {
+    this.userSource.next(name);
+  }
+}
+--------------------------------------------------------------------------------------------------
+ng generate component components/user-input
+ng generate component components/user-display
+---------------------------------------------------------------------------------------------------
+import { Component } from '@angular/core';
+import { UserService } from '../../services/user.service';
+
+@Component({
+  selector: 'app-user-input',
+  templateUrl: './user-input.component.html',
+  styleUrls: ['./user-input.component.css']
+})
+export class UserInputComponent {
+  constructor(private userService: UserService) {}
+
+  updateUser(name: string) {
+    this.userService.updateUser(name);
+  }
+}
+<input #nameInput type="text" placeholder="Enter name">
+<button (click)="updateUser(nameInput.value)">Update Name</button>
+---------------------------------------------------------------------------------------------------
+import { Component, OnInit } from '@angular/core';
+import { UserService } from '../../services/user.service';
+
+@Component({
+  selector: 'app-user-display',
+  templateUrl: './user-display.component.html',
+  styleUrls: ['./user-display.component.css']
+})
+export class UserDisplayComponent implements OnInit {
+  userName: string = '';
+
+  constructor(private userService: UserService) {}
+
+  ngOnInit() {
+    this.userService.currentUser.subscribe(name => {
+      this.userName = name;
+    });
+  }
+}
+
+<h3>Current User: {{ userName }}</h3>
+-----------------------------------------------------------------------------------------------------
+Modify `app.component.html` to include both components.
+
+and also import both the component.
+
+<h2>Angular State Management with Services</h2>
+<app-user-input></app-user-input>
+<app-user-display></app-user-display>
+
+add reference of user-input component and user-display component in .ts file
+ng serve
+----------------------------------------------------------------------------------------------------
+How it works:  
+1. Enter a name in the input field.  
+2. Click "Update Name".  
+3. The name is updated across components instantly via the service.
+
+---------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
