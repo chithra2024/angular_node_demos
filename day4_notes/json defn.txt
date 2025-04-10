@@ -1,0 +1,138 @@
+Step 1: Setup JSON Server
+=========================
+npm install -g json-server
+------------------------------------------------
+
+Create a file `db.json`on Angular folder structure:
+
+{
+  "products": [
+    { "id": 1, "name": "Laptop", "price": 1200 },
+    { "id": 2, "name": "Phone", "price": 800 }
+  ]
+}
+
+-------------------------------------------------------
+Start JSON Server:
+
+json-server --watch db.json
+
+-----------------------------------------------------
+
+JSON Server is now running at `http://localhost:3000/products`
+
+------------------------------------------------------
+Before Angular integration we can test RestAPI via postman (Rest Client)
+
+------------------------------------------------------
+
+- Method: `GET`
+- URL: `http://localhost:3000/products`
+- hould return the list of products.
+
+- Method: `GET`
+- URL: `http://localhost:3000/products/1`
+- Should return the product with `id: 1`.
+
+- Method: `POST`
+- URL: `http://localhost:3000/products`
+- Body: (Choose raw > JSON)
+{
+  "name": "Tablet",
+  "price": 500
+}
+
+- Method: `PUT`
+- URL: `http://localhost:3000/products/1`
+- Body: (raw JSON)
+{
+  "name": "Gaming Laptop",
+  "price": 1500
+}
+
+- Method: `PATCH`
+- URL: `http://localhost:3000/products/2`
+- Body: (raw JSON)
+{
+  "price": 900
+}
+
+- Method: `DELETE`
+- URL: `http://localhost:3000/products/1`
+
+-----------------------------------------------
+Head: Sends a request just like GET, but only retrieves headers — no body/data is returned.
+Options: Checks what methods are allowed for an endpoint.
+------------------------------------------------------------------------------------------------------------------------------------
+
+
+JSON Server is a popular tool used by developers to quickly set up a mock REST API using a simple JSON file as the data source. It’s extremely helpful for front-end development, testing, and prototyping when a real backend isn’t ready yet.
+
+----------------------------------------------------------------------------------------------
+
+What is JSON Server?
+
+JSON Server is a Node.js-based tool that lets you:
+- Create a fake REST API in minutes.
+- Use a `db.json` file to act as a backend database.
+- Perform CRUD operations (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) automatically.
+
+
+-------------------------------------------------------------------------------------------
+Key Features
+- No coding required for the backend.
+- Supports RESTful routing.
+- Can be customized with middleware and routes.
+- Serves static files (optional).
+----------------------------------------------------------------------------------------
+
+
+Installation
+
+You need Node.js installed. Then install JSON Server globally:
+
+npm install -g json-server
+---------------------------------------------------------------------------------------
+
+Creating a Mock API
+
+1. Create a `db.json` file:
+
+{
+  "posts": [
+    { "id": 1, "title": "Hello World" },
+    { "id": 2, "title": "JSON Server is awesome!" }
+  ],
+  "comments": [
+    { "id": 1, "postId": 1, "body": "Nice post!" }
+  ]
+}
+-----------------------------------------------------------------------------------------
+2. Start the server:
+
+json-server --watch db.json
+
+---------------------------------------------------------------------------------------
+3. Your mock API is now running at:
+
+http://localhost:3000/posts
+http://localhost:3000/comments
+
+----------------------------------------------------------------------------------------
+Example Endpoints
+
+- `GET /posts` → Get all posts  
+- `GET /posts/1` → Get post with ID 1  
+- `POST /posts` → Add a new post  
+- `PUT /posts/1` → Replace post with ID 1  
+- `PATCH /posts/1` → Update post with ID 1  
+- `DELETE /posts/1` → Delete post with ID 1
+
+-----------------------------------------------------------------------------------------
+Why Use JSON Server?
+
+- Easy to set up and use.
+- Great for front-end development without depending on the backend.
+- Helpful for creating proof-of-concept apps.
+
+-------------------------------------------------------------------------------------------
