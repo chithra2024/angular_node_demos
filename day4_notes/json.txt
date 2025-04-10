@@ -1,0 +1,256 @@
+Step 1: Setup JSON Server
+=========================
+npm install -g json-server
+
+Create a file `db.json`:
+
+{
+  "products": [
+    { "id": 1, "name": "Laptop", "price": 1200 },
+    { "id": 2, "name": "Phone", "price": 800 }
+  ]
+}
+
+Start JSON Server:
+
+json-server --watch db.json
+
+JSON Server is now running at `http://localhost:3000/products`
+
+
+- Method: `GET`
+- URL: `http://localhost:3000/products`
+- hould return the list of products.
+
+- Method: `GET`
+- URL: `http://localhost:3000/products/1`
+- Should return the product with `id: 1`.
+
+- Method: `POST`
+- URL: `http://localhost:3000/products`
+- Body: (Choose raw > JSON**)
+{
+  "name": "Tablet",
+  "price": 500
+}
+
+- Method: `PUT`
+- URL: `http://localhost:3000/products/1`
+- Body: (raw JSON)
+{
+  "name": "Gaming Laptop",
+  "price": 1500
+}
+
+- Method: `PATCH`
+- URL: `http://localhost:3000/products/2`
+- Body: (raw JSON)
+{
+  "price": 900
+}
+
+- Method: `DELETE`
+- URL: `http://localhost:3000/products/1`
+
+-----------------------------------------------
+Head: Sends a request just like GET, but only retrieves headers — no body/data is returned.
+Options: Checks what methods are allowed for an endpoint.
+------------------------------------------------------------------------------------------------------------------------------------
+Ingegration with Angular
+-----------------------
+
+ng new product-crud-app
+cd product-crud-app
+ng generate component products 
+
+HttpClientModule is traditonal
+new version: provider, name is provideHttpClient()
+
+=======================================================
+//  app.config.ts
+===============================
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+provideHttpClient(),
+provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)
+
+]
+};
+
+
+
+Create Product Interface
+
+// src/app/product.ts
+export interface Product {
+  id?: number;
+  name: string;
+  price: number;
+}
+
+ng g s product
+
+Create Product Service
+
+// src/app/product.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Product } from './product';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+@Injectable({ providedIn: 'root' })
+export class ProductService {
+  private apiUrl = 'http://localhost:3000/products';
+
+  constructor(private http: HttpClient) {}
+
+  getProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(this.apiUrl).pipe(
+      catchError(err => {
+        console.error('GET error:', err);
+        return throwError(() => new Error('Failed to load products'));
+      })
+    );
+  }
+
+  addProduct(product: Product): Observable<Product> {
+    return this.http.post<Product>(this.apiUrl, product).pipe(
+      catchError(err => {
+        console.error('POST error:', err);
+        return throwError(() => new Error('Failed to add product'));
+      })
+    );
+  }
+
+  updateProduct(product: Product): Observable<Product> {
+    return this.http.put<Product>(`${this.apiUrl}/${product.id}`, product).pipe(
+      catchError(err => {
+        console.error('PUT error:', err);
+        return throwError(() => new Error('Failed to update product'));
+      })
+    );
+  }
+
+  deleteProduct(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      catchError(err => {
+        console.error('DELETE error:', err);
+        return throwError(() => new Error('Failed to delete product'));
+      })
+    );
+  }
+}
+
+Update Products Component
+
+// src/app/products/products.component.ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ProductService } from '../product.service';
+import { Product } from '../product';
+import { tap } from 'rxjs/operators';
+
+@Component({
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  selector: 'app-products',
+  templateUrl: './products.component.html'
+})
+export class ProductsComponent {
+  products: Product[] = [];
+  newProduct: Product = { name: '', price: 0 };
+  errorMsg = '';
+
+  constructor(private productService: ProductService) {
+    this.loadProducts();
+  }
+
+  loadProducts() {
+    this.productService.getProducts()
+      .pipe(tap(() => (this.errorMsg = '')))
+      .subscribe({
+        next: (data) => this.products = data,
+        error: (err) => this.errorMsg = err.message
+      });
+  }
+
+  addProduct() {
+    this.productService.addProduct(this.newProduct).subscribe({
+      next: (product) => {
+        this.products.push(product);
+        this.newProduct = { name: '', price: 0 };
+        this.errorMsg = '';
+      },
+      error: (err) => this.errorMsg = err.message
+    });
+  }
+
+  updateProduct(product: Product) {
+    this.productService.updateProduct(product).subscribe({
+      next: () => {
+        this.errorMsg = '';
+      },
+      error: (err) => this.errorMsg = err.message
+    });
+  }
+
+  deleteProduct(id?: number) {
+    if (!id) return;
+    this.productService.deleteProduct(id).subscribe({
+      next: () => {
+        this.products = this.products.filter(p => p.id !== id);
+        this.errorMsg = '';
+      },
+      error: (err) => this.errorMsg = err.message
+    });
+  }
+}
+
+
+HTML Template
+
+<!-- src/app/products/products.component.html -->
+<h2>Product List</h2>
+
+<div *ngIf="errorMsg" style="color: red">{{ errorMsg }}</div>
+
+<ul>
+  <li *ngFor="let product of products">
+    <input [(ngModel)]="product.name" />
+    <input [(ngModel)]="product.price" type="number" />
+    <button (click)="updateProduct(product)">Update</button>
+    <button (click)="deleteProduct(product.id)">Delete</button>
+  </li>
+</ul>
+
+<h3>Add New Product</h3>
+<input [(ngModel)]="newProduct.name" placeholder="Name" />
+<input [(ngModel)]="newProduct.price" placeholder="Price" type="number" />
+<button (click)="addProduct()">Add</button>
+
+Set Root Component
+
+// src/app/app.component.ts
+import { Component } from '@angular/core';
+import { ProductsComponent } from './products/products.component';
+
+@Component({
+  standalone: true,
+  imports: [ProductsComponent],
+  selector: 'app-root',
+  template: `<app-products />`
+})
+export class AppComponent {}
+
+Now run:
+
+ng serve
+--------------------------------------------------------------------------------------
