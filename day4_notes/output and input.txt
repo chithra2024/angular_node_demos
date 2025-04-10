@@ -1,0 +1,90 @@
+Component Communication
+=======================
+Demo1: using @Input (parent to child interaction)
+
+src/app/app.component.ts
+=======================
+
+Parent is App component, interact with  child ie). User Component
+
+import {Component} from '@angular/core';
+import {UserComponent} from './user.component';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <app-user occupation="Angular Developer welcome"></app-user>`
+  ,
+  imports: [UserComponent],
+})
+export class AppComponent {}
+
+------------------------------------------------------------------
+ng g c user
+
+-----------------------------------------------------------------
+src/app/user.component.ts
+
+import {Component, Input} from '@angular/core';
+
+@Component({
+  selector: 'app-user',
+  template: `
+    <p>The user's name is {{occupation}} </p>
+  `,
+})
+export class UserComponent {
+   @Input() occupation = '';
+}
+
+------------------------------------------------------------
+Demo2: using @Output (child component to parent component)
+
+=================
+ng g c child
+
+src/app/child.component.ts
+
+import { Component, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-child',
+  standalone: true,
+  template: `
+    <button class="btn" (click)="addItem()">Add Item</button>
+  `,
+  styles: [`.btn { padding: 5px; }`],
+})
+export class ChildComponent {
+  @Output() addItemEvent = new EventEmitter<string>();
+
+  addItem() {
+    this.addItemEvent.emit('🐢');
+  }
+}
+-------------------------------------------------------------------
+
+src/app/app.component.ts
+
+import { Component } from '@angular/core';
+import { ChildComponent } from './child.component';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [ChildComponent],
+  template: `
+    <app-child (addItemEvent)="addItem($event)" />
+    <p>🐢 all the way down {{ items.length }}</p>
+  `,
+})
+export class AppComponent {
+  items: string[] = [];
+
+  addItem(item: string) {
+    this.items.push(item);
+  }
+}
+
+-------------------------------------------------------------------
+=======================================================================
