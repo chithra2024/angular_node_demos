@@ -1,0 +1,663 @@
+Lesson1 : Fundamental of Observable
+===================================
+What is Observable?
+===================
+We use Observables to perform asynchronous operations and handle asynchronous data.
+
+Asynchronous operation can be done as follows:
+
+1. Promise
+2. Observable
+
+JavaScript is a single threaded programming language (execution is line by line).
+if task takes long time (example : http request) to execute then remaining lines of code has to wait.
+
+Here synchronous code is blocking nature.
+
+To overcome this issue Asynchrous is used.
+
+The code executes in the background without blocking the execution of code in main thread.
+
+Asynchronous code is non blocking.
+
+using Asynchronous request, we can perform long network operation without blocking the code execution
+
+Promise:
+========
+example:
+client passes request to server to fetch some data (from database or Web API) it takes long run to fetch the details and later it gives response to the client atonce together.
+
+Promise a data, provide a data over perid of time.
+
+Promise provide a data once complete data is ready.
+
+Data can be actual data for what we have requested or also be an error
+
+In case network failure also the delivery is confirm by saying error message.
+
+response is a single data and guarantee
+
+Native to Java Script language
+
+Observable:
+===========
+
+client passes request to server to fetch some data (from database or web API) it takes long run to fetch the details.
+
+Here Observable will not wait for the complete data to be available
+Observable streams the data
+It will sent the data in packets as chunck
+
+response is not guarantee, will forward when ever collects the data, provides multiple values
+
+It will start producing the data if some one is available to use otherwise not.
+
+Not native feature of Angular or Java script, it is provided by another Java Script library RxJs
+
+An observable is a function that converts ordinary stream of data into an observable stream of data.
+
+The RxJs(Reactive Extension library for JavaScript) is a JavaScript library, that allows us to work with asynchronous data stream.
+
+refer:https://reactivex.io/
+
+In RxJs we have 
+
+Observable -> Stream of Data
+Observer -> subscriber
+
+In order to make use of data by Observer then Observer has to subscribe 
+to Observable.
+
+1. ng new ObservableDemo
+
+2. erase the code in app.component.html and place the below code
+
+<h1>ObservableDemo</h1>
+
+3. In app.component.html
+
+import { Component, OnInit } from '@angular/core';
+import {Observable} from 'rxjs';
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit{
+  
+  ngOnInit(): void {
+    //throw new Error('Method not implemented.');
+    this.myObservable.subscribe((val)=>{
+     alert(val);
+      });
+      }
+      
+  
+  
+  title = 'observableDemo';
+
+  myObservable=new Observable((observer)  =>  {
+    console.log('Observable starts');
+    observer.next("1");   // these data are streams not emitted at once.
+    observer.next("2");
+    observer.next("3");
+    observer.next("4");
+    observer.next("5");
+    });
+    
+}
+
+4. ng serve --open
+
+===============================================================================
+
+5. Modify the code to introduce timer
+
+
+  ngOnInit(): void {
+    //throw new Error('Method not implemented.');
+    this.myObservable.subscribe((val)=>{
+     console.log(val);
+      });
+      }
+
+myObservable=new Observable((observer)=>{
+    console.log('Observable starts');
+    setTimeout(()=>{observer.next("1")},1000)
+    setTimeout(()=>{observer.next("2")},2000)
+    setTimeout(()=>{observer.next("3")},3000)
+    setTimeout(()=>{observer.next("4")},4000)
+    setTimeout(()=>{observer.next("5")},5000)
+
+    });
+  
+
+6. ng serve --open
+
+=================================================================================
+
+7. modify the code to raise the error
+
+myObservable=new Observable((observer)=>{
+    console.log('Observable starts');
+    setTimeout(()=>{observer.next("1")},1000)
+    setTimeout(()=>{observer.next("2")},2000)
+    setTimeout(()=>{observer.next("3")},3000)
+    setTimeout(()=>{observer.error(new Error('something went wrong'))},3000)
+    setTimeout(()=>{observer.next("4")},4000)
+    setTimeout(()=>{observer.next("5")},5000)
+
+    });
+  
+8. ng serve --open
+=======================================================
+
+9. modify the code to handle error
+
+  ngOnInit(): void {
+    //throw new Error('Method not implemented.');
+    this.myObservable.subscribe((val)=>{
+     console.log(val);
+      },(error)=>{
+alert(error.message);
+});
+      }
+
+10. ng serve --open
+
+====================================================
+
+11. modify the code to generate complete signal
+
+myObservable=new Observable((observer)=>{
+    console.log('Observable starts');
+    setTimeout(()=>{observer.next("1")},1000)
+    setTimeout(()=>{observer.next("2")},2000)
+    setTimeout(()=>{observer.next("3")},3000)
+    setTimeout(()=>{observer.next("4")},4000)
+    setTimeout(()=>{observer.next("5")},5000)
+    setTimeout(()=>{observer.complete()},6000)
+
+    });
+  
+ngOnInit(): void {
+    //throw new Error('Method not implemented.');
+    this.myObservable.subscribe((val)=>{
+     console.log(val);
+      },(error)=>{
+alert(error.message);
+},()=>{
+alert("completed");
+});
+      }
+
+12. ng serve --open
+
+// note if complete signal is emitted then after that no data will get emitted
+you can verify by changing the code.
+setTimeout(()=>{observer.complete()},3000)
+
+// note if Observerable emitts error then it will not going to emit the complete signal it stops there itself
+
+=========================================================
+Lesson2: Different ways of Creating Observables
+=========================================================
+13. modify the code.
+
+  // myObservable=new Observable((observer)=>{
+  //   console.log('Observable starts');
+  //   setTimeout(()=>{observer.next("1")},1000)
+  //   setTimeout(()=>{observer.next("2")},2000)
+  //   setTimeout(()=>{observer.next("3")},3000)
+  //   setTimeout(()=>{observer.next("4")},4000)
+  //   setTimeout(()=>{observer.next("5")},5000)
+  //   setTimeout(()=>{observer.complete()},6000)
+
+  //   });
+
+
+
+  myObservable=Observable.create((observer: { next: (arg0: string) => void; complete: () => void; })=>{
+    console.log('Observable starts');
+    setTimeout(()=>{observer.next("A")},1000)
+    setTimeout(()=>{observer.next("B")},2000)
+    setTimeout(()=>{observer.next("C")},3000)
+    setTimeout(()=>{observer.next("D")},4000)
+    setTimeout(()=>{observer.next("E")},5000)
+    setTimeout(()=>{observer.complete()},6000)
+
+    });
+
+
+14. ng serve --open
+
+// here also if required we can emit error object.
+// here also if required we can emit complete signal
+
+=======================================================================================
+
+15. operators can be used to create observables
+
+import {from,Observable,of} from 'rxjs';
+
+array1=[1,2,3,4,7,9];
+array2=['A','B','C'];
+
+// of operator can be used to pass many parameter
+myObservable=of(this.array1,this.array2,20,70,'hello'); 
+
+
+ // myObservable=Observable.create((observer: { next: (arg0: string) => void; complete: () => void; })=>{
+  //   console.log('Observable starts');
+  //   setTimeout(()=>{observer.next("A")},1000)
+  //   setTimeout(()=>{observer.next("B")},2000)
+  //   setTimeout(()=>{observer.next("C")},3000)
+  //   setTimeout(()=>{observer.next("D")},4000)
+  //   setTimeout(()=>{observer.next("E")},5000)
+  //   setTimeout(()=>{observer.complete()},6000)
+
+  //   });
+
+16. ng serve --open
+
+// note of operator has emitted the complete signal
+// of operator emitting array as it is not one by one
+
+====================================================================================
+17. from operator
+
+//  myObservable=of(this.array1,this.array2,20,70,'hello'); 
+    myObservable=from(this.array1);
+
+19. ng serve --open
+// from operator takes an array and emits one by one and also provides compelte signal
+======================================================
+Lesson3: Different operator to transform data
+=======================================================
+20. we can use from method to convert promise to observable
+you can pass the promise in from method.
+
+Operators in RxJs are functions that takes an observable as input and transform it into a new observable and return it.
+we use operators to manipulate the observable data stream.
+
+transform the data given by observable.
+
+import { Component, OnInit } from '@angular/core';
+import {from,Observable,of} from 'rxjs';
+import {map} from 'rxjs/operators';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit{
+  
+  ngOnInit(): void {
+    //throw new Error('Method not implemented.');
+    this.tranformedObs.subscribe((val: any)=>{
+     console.log(val);
+      },(error: { message: any; })=>{
+alert(error.message);
+},()=>{
+alert("completed");
+});
+      }
+    
+      array1=[1,2,3,4,7,9];
+      array2=['A','B','C'];
+
+      myObservable=from(this.array1);
+
+      tranformedObs=this.myObservable.pipe(map((val)=>{
+        return val*5;
+        }))
+        
+      // of operator can be used to pass many parameter
+    //  myObservable=of(this.array1,this.array2,20,70,'hello'); 
+        
+  
+  title = 'observableDemo';
+
+  // myObservable=Observable.create((observer: { next: (arg0: string) => void; complete: () => void; })=>{
+  //   console.log('Observable starts');
+  //   setTimeout(()=>{observer.next("A")},1000)
+  //   setTimeout(()=>{observer.next("B")},2000)
+  //   setTimeout(()=>{observer.next("C")},3000)
+  //   setTimeout(()=>{observer.next("D")},4000)
+  //   setTimeout(()=>{observer.next("E")},5000)
+  //   setTimeout(()=>{observer.complete()},6000)
+
+  //   });
+
+
+}
+
+// here also complete signal will emit
+============================================================
+21. using filter operation
+
+import {map} from 'rxjs/operators';
+
+
+filterdObs=this.transformedObs.pipe(filter((val)=>{
+ return val>=30;
+}))
+
+subscribe this filteredObs to view output
+============================================================
+22. code can be reduced by merging map and filter together
+
+//filterdObs=this.transformedObs.pipe(filter((val)=>{
+// return val>=30;
+//}))
+
+      tranformedObs=this.myObservable.pipe(map((val)=>{
+        return val*5;
+        }),filter((val)=>{
+          return val>=30;
+        }))
+
+//here we use pipe method to extend number of operator like map and filter
+it goes in a sequence, result of one operator is input of other operator.
+
+=================================================================
+23. we can further reduce our code.
+
+      myObservable=from(this.array1).pipe(map((val)=>{
+        return val*5;
+        }),filter((val)=>{
+          return val>=30;
+        }));
+
+// now subscribe to myObservable to verify the output.
+
+//      tranformedObs=this.myObservable.pipe(map((val)=>{
+//        return val*5;
+//        }),filter((val)=>{
+//          return val>=30;
+//        }))
+
+//https://rxjs.dev/
+==================================================================
+Lesson4:  Using Subject
+=======================
+24. Subject in RxJs
+===================
+Subject is a special type of Observable that allows valueus to be multicasted to many Observers.
+Subjects are like EventEmitters.
+
+Cross component communication
+
+Two component are not related to any way
+
+comp1 : text box and button
+comp2 : label to dispaly the value entered in text box
+
+No parent child relationship.
+
+We can achive this using service and event emitter.
+
+1. create two component named as comp1 and comp2
+
+in comp1.html
+<div class="container">
+<input type="text">
+<button>Click</button>
+</div>
+
+
+2. in comp2.ts
+
+inputtext: string='';
+
+3. in comp2.html
+<div class="container">
+<h1>you entered:<i>{{inputtext}}</i></h1>
+</div>
+
+4. in comp1.ts
+
+enteredText:string='';
+
+5. in comp1.html
+<input type="text" [(ngModel)]="enteredText">
+
+6. imports FormsModule in app.module.ts
+
+7. in comp1.html
+<button (click)="onClick()">Click</button>
+
+8. in comp1.ts
+
+onClick(){
+console.log(this.enteredText);
+}
+
+9. ng serve --open 
+
+10. ng g s data
+
+in data.service.ts
+import {EventEmitter,Injectable} from "@angular/core";
+
+dataEmitter=new EventEmitter<string>(); 
+
+raiseDataEmitterEvent(data:string){
+
+this.dataEmitter.emit(data);
+}
+
+11. in comp1.ts
+
+inject data service thru constructor
+
+onClick(){
+this.dataService.raiseDataEmitterEvent(this.enteredText);
+}
+
+12. in comp2.ts
+inject data service thru constructor
+// we need to subscribe the event
+// this class should implements OnInit
+
+ ngOnInit():void{
+    this.dataService.dataEmitter.subscribe((val)=>{
+    this.inputtext=val;
+    
+    })
+      
+}
+// now verify the output 
+==================================================================
+13. replace service
+import {Subject} from "rxjs";
+
+//dataEmitter=new EventEmitter<string>();
+dataEmitter=new Subject<string>();
+
+raiseDataEmitterEvent(data:string){
+this.dataEmitter.next(data);
+}
+
+// we can also pass the data to multiple component.
+
+=================================================================
+
+Final code :
+
+in comp1.html
+
+<p>comp1 works!</p>
+<div class="container">
+    <input type="text" [(ngModel)]="enteredText" />
+    <button (click)="onClick()">Click</button>
+</div>
+    
+    
+
+in comp1.ts
+
+import { Component } from '@angular/core';
+import { DataService } from '../data.service';
+
+@Component({
+  selector: 'app-comp1',
+  templateUrl: './comp1.component.html',
+  styleUrls: ['./comp1.component.css']
+})
+export class Comp1Component {
+constructor(private dataService: DataService){
+
+}
+
+  enteredText:string='';
+  onClick(){
+    console.log(this.enteredText);
+    this.dataService.raiseDataEmitterEvent(this.enteredText);
+
+  }
+}
+
+in comp2.html
+
+<p>comp2 works!</p>
+<div class="container">
+    <h1>you entered:<i>{{inputtext}}</i></h1>
+    </div>
+    
+
+in comp2.ts
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from '../data.service';
+
+@Component({
+  selector: 'app-comp2',
+  templateUrl: './comp2.component.html',
+  styleUrls: ['./comp2.component.css']
+})
+export class Comp2Component implements OnInit{
+  inputtext: string='';
+  constructor(private dataService: DataService){
+
+  }
+  ngOnInit():void{
+    this.dataService.dataEmitter.subscribe((val)=>{
+    this.inputtext=val;
+    
+    })
+      
+}
+}
+
+in data.service.ts
+
+import { TestBed } from '@angular/core/testing';
+
+import { DataService } from './data.service';
+
+describe('DataService', () => {
+  let service: DataService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(DataService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
+
+
+in app.module.ts
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppComponent } from './app.component';
+import { Comp1Component } from './comp1/comp1.component';
+import { Comp2Component } from './comp2/comp2.component';
+import { FormsModule } from '@angular/forms';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    Comp1Component,
+    Comp2Component
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+=================================================================================
+Lesson5: Unsubscribe
+====================
+25. Unsubscribe the observable
+================================
+// using interval
+
+import {interval} from 'rxjs';
+
+counterObservable=interval(1000);  
+
+
+// this interval will  emit data in a sequence starts from 0, 1, ...
+
+ngOnInit(){
+
+this.counterObservable.subscribe((val)=> {
+console.log(val);
+})
+}
+
+===================================================
+// to stop this interval by clicking the button
+// declare a variable countersub
+
+counterSub;
+
+
+ngOnInit(){
+
+this.counterSub=this.counterObservable.subscribe((val)=> {
+console.log(val);
+})
+}
+
+in .html
+=========
+create a button
+<button (click)="unsubscribe()">unsubscribe</button>
+
+in .ts
+=========
+unsubscribe(){
+this.counterSub.unsubscribe();
+
+}
+
+in .html 
+<button (click)="subscribe()">subscribe</button>
+
+// comment ngOnInit and now we handle thru button
+
+subscribe(){
+this.counterSub=this.counterObservable.subscribe((val)=> {
+console.log(val);
+})
+
+}
+
+// when subscriber is there alone it will produce data
+
+// click subscribe and stop using unsubscribe, again you click subscribe
+many times, multiple subscribe is generated...
+
+===================================================================
