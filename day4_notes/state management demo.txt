@@ -94,4 +94,200 @@ How it works:
 3. The name is updated across components instantly via the service.
 
 ---------------------------------------------------------------------------------------
+Demo2: To demonstrate NgRx (Redux for Angular) by managing a simple counter state.
+
+
+npm install @ngrx/store --save
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+src/app/store
+
+counter.action.ts
+
+
+import { createAction } from '@ngrx/store';
+
+export const increment = createAction('[Counter] Increment');
+export const decrement = createAction('[Counter] Decrement');
+export const reset = createAction('[Counter] Reset');
+
+
+counter.reducer.ts
+
+import { createReducer, on } from '@ngrx/store';
+import { increment, decrement, reset } from './counter.actions';
+
+export const initialState = 0;
+
+export const counterReducer = createReducer(
+  initialState,
+  on(increment, (state) => state + 1),
+  on(decrement, (state) => state - 1),
+  on(reset, () => 0)
+);
+
+app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideStore } from '@ngrx/store';
+import { counterReducer } from './store/counter.reducer';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideStore({ count: counterReducer }),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+create counter component if required.
+
+app.component.html
+
+<h2>Angular State Management with Services</h2>
+<app-user-input></app-user-input>
+<app-user-display></app-user-display>
+<h1>Count: {{ count$ | async }}</h1>
+<button (click)="increment()">+</button>
+<button (click)="decrement()">-</button>
+<button (click)="reset()">Reset</button>
+
+app.component.ts
+
+
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { UserDisplayComponent } from './components/user-display/user-display.component';
+import { UserInputComponent } from './components/user-input/user-input.component';
+import { Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { decrement, increment, reset } from './store/counter.actions';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-root',
+  imports: [
+    UserDisplayComponent, UserInputComponent,
+    CommonModule
+   
+  ],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'statedemo';
+  count$: Observable<number>;
+
+  constructor(private store: Store<{ count: number }>) {
+    this.count$ = this.store.select('count');
+  }
+
+  increment() {
+    this.store.dispatch(increment());
+  }
+
+  decrement() {
+    this.store.dispatch(decrement());
+  }
+
+  reset() {
+    this.store.dispatch(reset());
+  }
+}
+------------------------------------------------------------------------------------------------------------------------
+npm i @ngrx/effects
+
+counter.effects.ts
+
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { increment, reset } from './counter.actions';
+import { tap, delay } from 'rxjs/operators';
+
+@Injectable()
+export class CounterEffects {
+  constructor(private actions$: Actions) {}
+
+  logIncrement$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(increment),
+      tap(() => console.log('Increment action dispatched!'))
+    ),
+    { dispatch: false }
+  );
+
+  delayedReset$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(reset),
+      delay(1000),
+      tap(() => console.log('Reset handled after delay!'))
+    ),
+    { dispatch: false }
+  );
+}
+
+app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideStore } from '@ngrx/store';
+import { counterReducer } from './store/counter.reducer';
+import { provideEffects } from '@ngrx/effects';
+import { CounterEffects } from './store/counter.effects';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideStore({ count: counterReducer }),
+    
+    provideEffects([CounterEffects]),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+
+
+tsconfig.json
+
+
+"compilerOptions": {
+  {
+    // ...
+    "useDefineForClassFields": false
+    // ...
+  }
+}
+
+--------------------------------------------------------------------------------------------
+Action:
+
+An action is just a plain JavaScript object describing what happened.
+Dispatched by: Component or Effect
+Goes into: Reducers and Effects
+
+---------------------------------------------------------------------------------------------
+Reducer:
+
+Reducers are pure functions that take the current state and an action, and return a new state.
+Handles synchronous state updates
+Should not do API calls or async work
+
+----------------------------------------------------------------------------------------------
+Effects:
+
+Effects (in NgRx) or middleware (in Redux) listen to actions and trigger async operations like HTTP calls, then dispatch new actions when done.
+Listens to actions
+Performs async work (API calls, delays, etc.)
+Dispatches success/failure actions
+-----------------------------------------------------------------------------------------------
+
+[Component]
+   ↓ dispatch
+[Action] ----> [Effect (for async)] ----> dispatch(success/fail)
+                           ↓
+                    [Reducer updates store]
+                           ↓
+                    [Updated State in Store]
+
 --------------------------------------------------------------------------------------------
