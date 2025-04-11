@@ -1,0 +1,326 @@
+Introduction to Express.js
+=========================
+Setting Up an Express Server
+============================
+
+npm init -y
+
+npm install express
+
+// index.js
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));
+//http://localhost:3000
+--------------------------------------------------------------------------------------
+Routing in Express
+==================
+
+app.get('/welcome', (req, res) => {
+  res.send('Welcome to Express.js!');
+});
+
+//http://localhost:3000/welcome
+----------------------------------------------------------------------------------
+Query Param
+===========
+app.get('/user/:id', (req, res) => {
+  res.send(`User ID: ${req.params.id}`);
+});
+
+app.get('/search', (req, res) => {
+  res.send(`Keyword: ${req.query.q}`);
+});
+//http://localhost:3000/user/123
+//http://localhost:3000/search?q=something
+------------------------------------------------------------------------------------
+
+Custom middleware
+=================
+app.use((req, res, next) => {
+  console.log(`Request Method: ${req.method}, URL: ${req.url}`);
+  next(); // Pass control
+});
+
+app.get('/', (req, res) => {
+  res.send('Middleware executed!');
+});
+
+//http://localhost:3000/
+//http://localhost:3000/welcome
+-------------------------------------------------------------------------------------
+Express with Static Files
+=========================
+mkdir public
+echo "<h1>Welcome to Static Page</h1>" > public/index.html
+
+
+app.use(express.static('public')); // Serve files from "public" folder
+
+
+Open `http://localhost:3000/` to view `index.html`.
+
+------------------------------------------------------------------------------------
+Handling JSON Data
+==================
+
+
+
+app.use(express.json()); // Parse JSON
+app.use(express.urlencoded({ extended: true })); // Parse form data
+
+app.post('/submit', (req, res) => {
+  res.send(`Received data: ${JSON.stringify(req.body)}`);
+});
+
+
+
+
+
+in postman
+use Post method
+//http://localhost:3000/submit
+pass thru body
+{
+  "name": "Alice",
+  "email": "alice@example.com"
+}
+
+
+In Postman:
+
+Go to the Body tab
+
+Select x-www-form-urlencoded
+
+Add keys and values:
+
+username = bob
+
+password = secret
+
+---------------------------------------------------------------------
+index.html
+
+<h1>Welcome to Static Page</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Static Page with Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Static Page</h1>
+  <form action="/submit" method="POST">
+    <label>Name:</label>
+    <input type="text" name="name" required />
+    <label>Email:</label>
+    <input type="email" name="email" required />
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>
+
+
+modify the code
+
+// Route to handle form submission
+app.post('/submit', (req, res) => {
+  const { name, email } = req.body;
+  res.send(`<h2>Thank you, ${name}!</h2><p>We received your email: ${email}</p>`);
+});
+
+
+
+-----------------------------------
+Creating a REST API
+=====================
+
+app.use(express.json());
+
+let items = [];
+
+// Read
+app.get('/items', (req, res) => res.json(items));
+
+// Create
+app.post('/items', (req, res) => {
+  items.push(req.body);
+  res.send('Item added');
+});
+
+// Update
+app.put('/items/:id', (req, res) => {
+  const id = req.params.id;
+  items[id] = req.body;
+  res.send('Item updated');
+});
+
+// Delete
+app.delete('/items/:id', (req, res) => {
+  items.splice(req.params.id, 1);
+  res.send('Item deleted');
+});
+
+
+Method: GET
+
+URL: http://localhost:3000/items
+
+
+Method: POST
+
+URL: http://localhost:3000/items
+
+Body:
+
+Go to Body > raw
+
+Select JSON
+
+{
+  "name": "Notebook",
+  "price": 12.99
+}
+
+
+PUT /items/:id — Update
+Method: PUT
+
+URL: http://localhost:3000/items/0 (use index as id)
+
+Body:
+
+raw JSON:
+
+{
+  "name": "Updated Notebook",
+  "price": 15.99
+}
+
+
+DELETE /items/:id — Delete
+Method: DELETE
+
+URL: http://localhost:3000/items/0
+---------------------------------------------------------------
+Modularizing Routes
+===================
+mkdir routes
+
+
+// routes/router.js
+const express = require('express');
+const router = express.Router();
+
+router.get('/something', (req, res) => {
+  res.send('All users route');
+});
+
+router.get('/:id', (req, res) => {
+  res.send(`User ID: ${req.params.id}`);
+});
+
+module.exports = router;
+
+// app.js
+const express = require('express');
+const app = express();
+const usersRoute = require('./routes/users');
+
+app.use('/users', usersRoute);
+
+//http://localhost:3000/users/10
+//http://localhost:3000/users/something
+--------------------------------------------------------------------------------
+Error Handling in Express
+============================
+
+app.get('/error', (req, res) => {
+  throw new Error('Something went wrong!');
+});
+
+// Error middleware (must have 4 params)
+app.use((err, req, res, next) => {
+  console.error(err.message);
+  res.status(500).send('Internal Server Error');
+});
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
