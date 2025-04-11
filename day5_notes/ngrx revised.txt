@@ -1,0 +1,254 @@
+npm i @ngrx/store @ngrx/effects
+
+// src/app/state/post.model.ts
+export interface Post {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
+}
+
+
+// src/app/state/post.actions.ts
+import { createAction, props } from '@ngrx/store';
+import { Post } from './post.model';
+
+export const loadPosts = createAction('[Post] Load Posts');
+export const loadPostsSuccess = createAction('[Post] Load Posts Success', props<{ posts: Post[] }>());
+export const loadPostsFailure = createAction('[Post] Load Posts Failure', props<{ error: string }>());
+
+
+// src/app/state/post.reducer.ts
+import { createReducer, on } from '@ngrx/store';
+import { loadPosts, loadPostsSuccess, loadPostsFailure } from './post.actions';
+import { Post } from './post.model';
+
+export interface PostState {
+  posts: Post[];
+  error: string | null;
+}
+
+const initialState: PostState = {
+  posts: [],
+  error: null
+};
+
+export const postReducer = createReducer(
+  initialState,
+  on(loadPosts, state => ({ ...state })),
+  on(loadPostsSuccess, (state, { posts }) => ({ ...state, posts })),
+  on(loadPostsFailure, (state, { error }) => ({ ...state, error }))
+);
+
+
+`post.effects.ts`
+
+```ts
+// src/app/state/post.effects.ts
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { HttpClient } from '@angular/common/http';
+import { loadPosts, loadPostsSuccess, loadPostsFailure } from './post.actions';
+import { catchError, map, mergeMap, of } from 'rxjs';
+import { Post } from './post.model';
+
+@Injectable()
+export class PostEffects {
+  constructor(private actions$: Actions, private http: HttpClient) {}
+
+  loadPosts$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(loadPosts),
+      mergeMap(() =>
+        this.http.get<Post[]>('https://jsonplaceholder.typicode.com/posts').pipe(
+          map(posts => loadPostsSuccess({ posts })),
+          catchError(error => of(loadPostsFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+}
+
+
+
+`post.selectors.ts`
+
+// src/app/state/post.selectors.ts
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { PostState } from './post.reducer';
+
+export const selectPostState = createFeatureSelector<PostState>('posts');
+
+export const selectAllPosts = createSelector(
+  selectPostState,
+  state => state.posts
+);
+
+export const selectPostError = createSelector(
+  selectPostState,
+  state => state.error
+);
+
+ng g c post-list
+
+// src/app/post-list.component.ts
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Store } from '@ngrx/store';
+import { loadPosts } from './state/post.actions';
+import { selectAllPosts, selectPostError } from './state/post.selectors';
+
+@Component({
+  standalone: true,
+  selector: 'app-post-list',
+  imports: [CommonModule],
+  template: `
+    <h2>Posts</h2>
+    <div *ngIf="error$ | async as error" class="error">{{ error }}</div>
+    <ul>
+      <li *ngFor="let post of posts$ | async">
+        <strong>{{ post.title }}</strong><br />
+        {{ post.body }}
+      </li>
+    </ul>
+  `
+})
+export class PostListComponent implements OnInit {
+  private store = inject(Store);
+  posts$ = this.store.select(selectAllPosts);
+  error$ = this.store.select(selectPostError);
+
+  ngOnInit() {
+    this.store.dispatch(loadPosts());
+  }
+}
+
+
+`app.routes.ts`
+
+// src/app/app.routes.ts
+import { Routes } from '@angular/router';
+import { PostListComponent } from './post-list.component';
+
+export const routes: Routes = [
+  {
+    path: '',
+    component: PostListComponent
+  }
+];
+
+
+
+`app.config.ts`
+
+// src/app/app.config.ts
+import { ApplicationConfig } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { postReducer } from './state/post.reducer';
+import { PostEffects } from './state/post.effects';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+    provideRouter(routes),
+    provideStore({ posts: postReducer }),
+    provideEffects([PostEffects])
+  ]
+};
+
+tsconfig.json
+
+
+"compilerOptions": {
+  {
+    // ...
+    "useDefineForClassFields": false
+    // ...
+  }
+}
+
+
+
+
+app.component.html
+
+<router-outlet></router-outlet>
+
+app.component.ts
+
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'mngrxdemo';
+}
+
+
+main.ts
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+-----------------------------------------------------------------------------------------
+Action:The Triggers
+Purpose: Actions are simple, descriptive objects that tell NgRx "something happened".
+When the component dispatches loadPosts, it notifies the store:
+“Hey! I want to load some posts!”
+
+
+----------------------------------------------------------------------------------------
+Effects: The Side-Effect Handlers
+
+Purpose: Handle side effects like API calls.
+They listen for certain actions (like loadPosts) and perform async work (like calling a server), then dispatch new actions.
+
+It hears loadPosts
+Calls the API
+Dispatches loadPostsSuccess({ posts }) or  loadPostsFailure({ error })
+----------------------------------------------------------------------------------------
+Reducer: The State Manager 
+Purpose: Pure function that takes the current state and an action, and returns a new state.
+
+The reducer updates the store when it sees loadPostsSuccess
+It sets posts in the state
+----------------------------------------------------------------------------------------
+Selectors: The State Readers
+Purpose: Select slices of state to expose to the UI.
+selectAllPosts gives the component access to state.posts
+selectPostError gives access to state.error
+
+------------------------------------------------------------------------------
+Component (UI): The View & Dispatcher
+Purpose: Uses selectors to read data, and dispatches actions to initiate changes.
+
+Dispatches loadPosts
+PostEffects fetches data → loadPostsSuccess
+Reducer updates state
+Selector gives updated posts to the component
+Component displays them in the UI
+---------------------------------------------------------------------------------
+
+Action:Describe what happened->loadPosts, loadPostsSuccess
+Effect:Handles async operations->API call on loadPosts
+Reducer:Updates store based on action->Save posts on loadPostsSuccess
+Selector:Access specific state data->selectAllPosts
+Component:Displays data, triggers events->Dispatches loadPosts, subscribes to posts$
+
+------------------------------------------------------------------------------------
+
+
+
+
