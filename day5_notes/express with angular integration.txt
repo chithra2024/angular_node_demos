@@ -1,0 +1,173 @@
+Create an Angular Application
+=====================================
+1. Generate a new Angular project:
+   ng new my-angular-app
+
+   - Select CSS or any preferred styling option. Yes
+   - Do you want to enable Server-Side Rendering (SSR) and Static Site Generation (SSG/Prerendering)? (y/N) no
+
+2. Move into the project folder:
+   cd my-angular-app
+
+3. Serve the application:
+   ng serve
+
+   - Open a browser and visit `http://localhost:4200/` to see the default Angular app running.
+------------------------------------------------------------------------------------------------------------------------------------------------Set Up a Node.js Express Server
+=======================================
+cd..
+
+1. Open a new terminal and create a new folder for the backend:
+
+   mkdir backend
+   cd backend
+
+2. Initialize a new Node.js project:
+   npm init -y
+   This creates a `package.json` file.
+
+3. Install Express:
+   npm install express cors body-parser
+
+   this will generate node modules
+
+4. Create a file named `server.js` and add the following code:
+   const express = require("express");
+   const cors = require("cors");
+
+   const app = express();
+   app.use(cors());
+   app.use(express.json());
+
+   app.get("/", (req, res) => {
+       res.send("Node.js Express server is running...");
+   });
+
+   app.listen(3000, () => {
+       console.log("Server running on http://localhost:3000");
+   });
+
+5. Run the server:
+   node server.js
+   - Open `http://localhost:3000` in a browser, and you should see the message **"Node.js Express server is running...".
+
+------------------------------------------------------------------------------------------------------------------------------------------------Connecting Angular with the Node.js Express Server
+=========================================================
+=========================================================
+Prerequisites
+- Angular project (`my-angular-app`) is set up.
+- Node.js Express server (`backend`) is running.
+
+
+Step 1: Enable CORS in the Express Backend
+==========================================
+Since Angular and Express run on different ports (4200 and 3000), we need to enable CORS (Cross-Origin Resource Sharing).
+
+1. Open `server.js` in the `backend` folder.
+2. Update the CORS middleware:
+   const cors = require("cors");
+
+   app.use(cors({ origin: "http://localhost:4200" }));
+
+3. Restart the server:
+   node server.js
+
+------------------------------------------------------------------------------------------------------------------------------------------------Step 2: Create an API Endpoint in Express
+=========================================
+1. Modify `server.js` to add an API endpoint:
+   app.get("/api/message", (req, res) => {
+       res.json({ message: "Hello from Express Backend!" });
+   });
+2. Restart the server and test in the browser:
+   - Visit `http://localhost:3000/api/message`
+   - You should see:
+     { "message": "Hello from Express Backend!" }
+
+------------------------------------------------------------------------------------------------------------------------------------------------Step 3: Call Express API from Angular
+=====================================
+1. Open the Angular project (`my-angular-app`).
+2. Generate a service to fetch data from Express:
+   
+   ng generate service api
+
+3. Open `src/app/api.service.ts` and update it:
+
+   import { Injectable } from '@angular/core';
+   import { HttpClient } from '@angular/common/http';
+   import { Observable } from 'rxjs';
+
+   @Injectable({
+     providedIn: 'root'
+   })
+   export class ApiService {
+     private apiUrl = 'http://localhost:3000/api/message';
+
+     constructor(private http: HttpClient) {}
+
+     getMessage(): Observable<any> {
+       return this.http.get<any>(this.apiUrl);
+     }
+   }
+
+------------------------------------------------------------------------------------------------------------------------------------------------Step 4: Display Data in Angular Component
+==========================================
+ 
+
+1. modify your app.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { ApiService } from './api.service';
+@Component({
+  selector: 'app-root',
+  imports: [],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent implements OnInit {
+  message: string = '';
+
+  constructor(private apiService: ApiService) {}
+
+  ngOnInit() {
+    this.apiService.getMessage().subscribe(response => {
+      this.message = response.message;
+    });
+  }
+}
+
+
+2.modify app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+ 
+note: HttpClientModule is deprecated and used provideHttpClient method.
+
+3. Open `src/app/app.component.html` and display the message:
+   <h1>Angular & Express Integration</h1>
+   <p>{{ message }}</p>
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 5: Run and Test the Integration
+====================================
+1. Ensure the Express server is running:
+  
+   node backend/server.js
+   
+2. Run the Angular app:
+   
+   ng serve
+   
+3. Open `http://localhost:4200/`
+   - You should see "Hello from Express Backend!" displayed on the page.
+
+------------------------------------------------------------------------------------------------------------------------------------------------
