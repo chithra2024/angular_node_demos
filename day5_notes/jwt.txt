@@ -1,0 +1,186 @@
+Create server node with Express to genrate REST API and user data for JWT token
+===============================================================================
+1. mkdir jwtexample
+2. cd jwt example
+3. mkdir server
+4. cd server
+5. npm init -y
+6. npm install express jsonwebtoken
+7. npm install -d nodemon
+8. create index.js in your directory
+9. edit package.json 
+
+under scripts attribute, add , and then add the below line
+"start": "nodemon index.js" 
+
+complete code on index.js
+
+// Import express for creating API's endpoints
+const express = require("express");
+
+// Import jwt for API's endpoints authentication
+const jwt = require("jsonwebtoken");
+
+// Creates an Express application, initiate
+// express top level function
+const app = express();
+
+// A port for serving API's
+const port = 3000;
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');    
+    next();
+  });
+// A fake database object
+let database = [
+{
+	name: "ram",
+	work: "knowledge provider",
+	password: "password",
+},
+{
+	name: "sita",
+	work: "technical content writer",
+	password: "password",
+},
+];
+
+// A demo get route
+app.get("/", (req, res) => {
+res.json({
+	route: "/",
+	authentication: false,
+});
+});
+
+// Allow json data
+app.use(express.json());
+
+// Login route
+app.post("/login", (req, res) => {
+	console.log(req.body.name+"body");
+// Get the name to the json body data
+const name = req.body.name;
+
+// Get the password to the json body data
+const password = req.body.password;
+
+// Make two variable for further use
+let isPresent = false;
+let isPresentIndex = null;
+
+// iterate a loop to the data items and
+// check what data are matched.
+for (let i = 0; i < database.length; i++) {
+
+	// If data name are matched so check
+	// the password are correct or not
+	if (database[i].name === name
+	&& database[i].password === password) {
+
+	// If both are correct so make
+	// isPresent variable true
+	isPresent = true;
+
+	// And store the data index
+	isPresentIndex = i;
+
+	// Break the loop after matching successfully
+	break;
+	}
+}
+
+// If isPresent is true, then create a
+// token and pass to the response
+if (isPresent) {
+
+	// The jwt.sign method are used
+	// to create token
+	const token = jwt.sign(database[isPresentIndex], "secret");
+
+	// Pass the data or token in response
+	res.json({
+	login: true,
+	token: token,
+	data: database[isPresentIndex],
+	});
+} else {
+
+	// If isPresent is false return the error
+	res.json({
+	login: false,
+	error: "please check name and password.",
+	});
+}
+});
+
+// Verify route
+app.get("/auth", (req, res) => {
+
+	const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+   console.log(token+"token here");
+  //console.log(req.body.token+"body");
+// Get token value to the json body
+//const token = req.body.token;
+//const token =req.params['name'];
+//console.log(token+"token");
+// If the token is present
+if (token) {
+
+	// Verify the token using jwt.verify method
+	const decode = jwt.verify(token, "secret");
+
+	// Return response with decode data
+	res.json({
+	login: true,
+	data: decode,
+	});
+} else {
+
+	// Return response with error
+	res.json({
+	login: false,
+	data: "error",
+	});
+}
+});
+
+// Listen the server
+app.listen(port, () => {
+console.log(`Server is running :
+	http://localhost:${port}/`);
+});
+
+
+11. node index.js
+This will make server ready
+
+12. test the server using postman
+
+a). Method : Post
+
+url : http://localhost:3000/login
+body->raw->json :
+
+{
+ "name":"ram",
+ "password":"password"
+
+
+}
+
+
+click send-> copy json token
+
+b). Method : Get
+
+url: http://localhost:3000/auth
+Authorization-> Type Bearer token -> copy and paste the token in box
+
+click send -> verify the output
+===================================================================================
