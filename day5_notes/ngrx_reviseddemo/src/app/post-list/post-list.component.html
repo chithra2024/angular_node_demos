@@ -1,0 +1,9 @@
+<p>post-list works!</p>
+<h2>Posts</h2>
+<div *ngIf="error$ | async as error" class="error">{{ error }}</div>
+<ul>
+  <li *ngFor="let post of posts$ | async">
+    <strong>{{ post.title }}</strong><br />
+    {{ post.body }}
+  </li>
+</ul>
