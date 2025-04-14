@@ -1,0 +1,221 @@
+# 1. Create a new Angular app with standalone config and routing
+ng new jwt-angular-app 
+cd jwt-angular-app
+
+# 2. Generate login standalone component under auth/
+ng generate component auth/login 
+
+# 3. Generate home standalone component under home/
+ng generate component home/home 
+
+# 4. Create auth service (for login, verify, token store)
+ng generate service auth/auth
+
+# 5. Create an HTTP interceptor for adding JWT token to requests
+ng generate interceptor auth/auth
+
+# app.config.ts
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { authInterceptor } from './auth/auth.interceptor';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(withInterceptors([authInterceptor])),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+app.routes.ts
+
+import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { LoginComponent } from './auth/login/login.component';
+
+export const routes: Routes = [
+    { path: '', component: LoginComponent },
+    { path: 'home', component: HomeComponent }
+];
+
+
+# auth.service.ts
+
+// src/app/auth/auth.service.ts
+
+// src/app/auth/auth.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private api = 'http://localhost:3000';
+
+  constructor(private http: HttpClient, private router: Router) {}
+
+  login(credentials: { name: string; password: string }) {
+    return this.http.post<any>(`${this.api}/login`, credentials);
+  }
+
+  verifyToken() {
+    return this.http.get<any>(`${this.api}/auth`);
+  }
+
+  saveToken(token: string) {
+    localStorage.setItem('token', token);
+  }
+
+  getToken() {
+    return localStorage.getItem('token');
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    this.router.navigate(['/']);
+  }
+}
+
+
+# auth.interceptor.js
+
+
+// src/app/auth/auth.interceptor.ts
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from './auth.service';
+
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+  const token = authService.getToken();
+
+  if (token) {
+    const cloned = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return next(cloned);
+  }
+
+  return next(req);
+};
+
+
+# login.component.ts
+
+import { Component } from '@angular/core';
+import { AuthService } from '../auth.service';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-login',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
+})
+export class LoginComponent {
+  name = '';
+  password = '';
+  error = '';
+
+  constructor(private auth: AuthService, private router: Router) {}
+
+  login() {
+    this.auth.login({ name: this.name, password: this.password }).subscribe(
+      (res) => {
+        if (res.login) {
+          this.auth.saveToken(res.token);
+          this.router.navigate(['/home']);
+        } else {
+          this.error = res.error;
+        }
+      },
+      (err) => {
+        this.error = 'Login failed';
+      }
+    );
+  }
+}
+
+# login.component.html
+<p>login works!</p>
+<h2>Login</h2>
+<form (ngSubmit)="login()">
+  <label>Name:</label>
+  <input [(ngModel)]="name" name="name" required autocomplete="name"/>
+  <br />
+  <label>Password:</label>
+  <input [(ngModel)]="password" name="password" type="password" required  autocomplete="password" />
+  <br />
+  <button type="submit">Login</button>
+</form>
+
+<p *ngIf="error" style="color: red">{{ error }}</p>
+
+note: add CommonModule and FormsModule - imports in the component
+
+# home.component.html
+
+<p>home works!</p>
+<h2>Welcome!</h2>
+<p *ngIf="data">Verified User: {{ data.name }} - {{ data.work }}</p>
+<button (click)="logout()">Logout</button>
+
+# home.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-home',
+  imports: [CommonModule],
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css'
+})
+export class HomeComponent implements OnInit {
+  data: any;
+
+  constructor(private auth: AuthService) {}
+
+  ngOnInit() {
+    this.auth.verifyToken().subscribe((res) => {
+      if (res.login) {
+        this.data = res.data;
+      } else {
+        this.auth.logout();
+      }
+    });
+  }
+
+  logout() {
+    this.auth.logout();
+  }
+}
+
+
+# app.component.html
+
+<h1>Angular Interceptor</h1>
+
+<router-outlet />
+
+# app.component.ts
+
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'pintegrationinterceptor';
+}
+
