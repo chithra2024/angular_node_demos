@@ -1,0 +1,502 @@
+Create server node with Express to genrate REST API and user data for JWT token
+===============================================================================
+1. mkdir jwtexample
+2. cd jwt example
+3. mkdir server
+4. cd server
+5. npm init -y
+6. npm install express jsonwebtoken
+7. npm install -d nodemon
+8. create index.js in your directory
+9. edit package.json 
+
+under scripts attribute, add , and then add the below line
+"start": "nodemon index.js" 
+
+10. complete code on index.js
+
+// Import express for creating API's endpoints
+const express = require("express");
+
+// Import jwt for API's endpoints authentication
+const jwt = require("jsonwebtoken");
+
+// Creates an Express application, initiate
+// express top level function
+const app = express();
+
+// A port for serving API's
+const port = 3000;
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');    
+    next();
+  });
+// A fake database object
+let database = [
+{
+	name: "ram",
+	work: "knowledge provider",
+	password: "password",
+},
+{
+	name: "sita",
+	work: "technical content writer",
+	password: "password",
+},
+];
+
+// A demo get route
+app.get("/", (req, res) => {
+res.json({
+	route: "/",
+	authentication: false,
+});
+});
+
+// Allow json data
+app.use(express.json());
+
+// Login route
+app.post("/login", (req, res) => {
+	console.log(req.body.name+"body");
+// Get the name to the json body data
+const name = req.body.name;
+
+// Get the password to the json body data
+const password = req.body.password;
+
+// Make two variable for further use
+let isPresent = false;
+let isPresentIndex = null;
+
+// iterate a loop to the data items and
+// check what data are matched.
+for (let i = 0; i < database.length; i++) {
+
+	// If data name are matched so check
+	// the password are correct or not
+	if (database[i].name === name
+	&& database[i].password === password) {
+
+	// If both are correct so make
+	// isPresent variable true
+	isPresent = true;
+
+	// And store the data index
+	isPresentIndex = i;
+
+	// Break the loop after matching successfully
+	break;
+	}
+}
+
+// If isPresent is true, then create a
+// token and pass to the response
+if (isPresent) {
+
+	// The jwt.sign method are used
+	// to create token
+	const token = jwt.sign(database[isPresentIndex], "secret");
+
+	// Pass the data or token in response
+	res.json({
+	login: true,
+	token: token,
+	data: database[isPresentIndex],
+	});
+} else {
+
+	// If isPresent is false return the error
+	res.json({
+	login: false,
+	error: "please check name and password.",
+	});
+}
+});
+
+// Verify route
+app.get("/auth", (req, res) => {
+
+	const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+   console.log(token+"token here");
+  //console.log(req.body.token+"body");
+// Get token value to the json body
+//const token = req.body.token;
+//const token =req.params['name'];
+//console.log(token+"token");
+// If the token is present
+if (token) {
+
+	// Verify the token using jwt.verify method
+	const decode = jwt.verify(token, "secret");
+
+	// Return response with decode data
+	res.json({
+	login: true,
+	data: decode,
+	});
+} else {
+
+	// Return response with error
+	res.json({
+	login: false,
+	data: "error",
+	});
+}
+});
+
+// Listen the server
+app.listen(port, () => {
+console.log(`Server is running :
+	http://localhost:${port}/`);
+});
+
+
+11. node index.js
+This will make server ready
+
+12. test the server using postman
+
+a). Method : Post
+
+url : http://localhost:3000/login
+body->raw->json :
+
+{
+ "name":"ram",
+ "password":"password"
+
+
+}
+
+
+click send-> copy json token
+
+b). Method : Get
+
+url: http://localhost:3000/auth
+Authorization-> Type Bearer token -> copy and paste the token in box
+
+click send -> verify the output
+=========================================================================
+Create Angular client the consume the above REST API
+=========================================================================
+1. mkdir client
+2. cd client
+3. ng new angularclient //routing not required
+4. create a component for login
+
+https://material.angular.io/
+
+5. ng add @angular/material
+
+6. ng generate @angular/material:address-form login
+
+7. In app.component.html
+add at the end
+<app-login></app-login>
+
+8. just verify component gets added or not (you will see the address form)
+
+9. changes in login component
+
+In login.component.html
+
+
+<form [formGroup]="loginForm" novalidate (ngSubmit)="onSubmit()">
+  <mat-card class="shipping-card">
+    <mat-card-header>
+      <mat-card-title>Login Information</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="full-width">
+            <input matInput placeholder="name" formControlName="name">
+            <mat-error *ngIf="loginForm.controls['name'].hasError('required')">
+              name is <strong>required</strong>
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <div class="col">
+          <mat-form-field class="full-width">
+            <input matInput placeholder="password" formControlName="password">
+            <mat-error *ngIf="loginForm.controls['password'].hasError('required')">
+              password is <strong>required</strong>
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" type="submit">Submit</button>
+    </mat-card-actions>
+  </mat-card>
+</form>
+
+10. In login.component.ts
+
+import { Component, OnInit, inject } from '@angular/core';
+
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent {
+
+
+  private fb = inject(FormBuilder);
+  loginForm = this.fb.group({
+        name: [null, Validators.required],
+    password: [null, Validators.required]
+    
+  });
+
+  
+      onSubmit() {
+     console.log(this.loginForm.value.name,this.loginForm.value.password);               
+         }
+       
+}
+
+
+11. ng g s jwt
+12. ensure these two modules got added in imports -> HttpClientModule,ReactiveFormsModule
+13. In jwt.service.ts
+
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class JwtService {
+
+  
+  constructor(private httpClient: HttpClient) { }
+
+
+
+  fetchJsonData(name: any,password:any){
+    return this.httpClient.post<any>('http://localhost:3000/login',{name, password})
+                .pipe(map(data=>{
+                   return {
+                   
+                   "result":data
+                   }
+
+                }))
+              }
+            
+
+}
+
+
+
+14. In login.component.ts
+
+import { Component, OnInit, inject } from '@angular/core';
+
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { JwtService } from '../jwt.service';
+
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent {
+
+  
+   constructor(private jwtservice:JwtService){}
+  private fb = inject(FormBuilder);
+  loginForm = this.fb.group({
+        name: [null, Validators.required],
+    password: [null, Validators.required]
+    
+  });
+
+  
+      onSubmit() {
+               
+   this.jwtservice.fetchJsonData(this.loginForm.value.name,this.loginForm.value.password)
+   .subscribe((data)=>{
+    console.log(data);
+    console.log(data.result.token);
+    if(!data.result.login)
+    {alert("sorry error")
+     window.location.reload();
+  }
+    else {alert("login done")}
+    localStorage.setItem('access_token',data.result.token);
+   })
+      }
+       
+}
+
+15. ng g c consume
+
+16. In app.component.html
+add at the end
+<app-consume></app-consume>
+
+17. In jwt.service.ts
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, map, tap } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class JwtService {
+
+  
+  constructor(private httpClient: HttpClient) { }
+
+
+
+  fetchJsonData(name: any,password:any){
+    return this.httpClient.post<any>('http://localhost:3000/login',{name, password})
+                .pipe(map(data=>{
+                   return {
+                   
+                   "result":data
+                   }
+
+                }))
+              }
+
+              
+
+              getRepos(token: any) {
+              
+                let api_key = token;
+                const headers = new HttpHeaders({
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${api_key}`
+                  });
+              
+                  const requestOptions = { headers: headers };
+              
+                console.log(token);
+               return  this.httpClient.get<any>('http://localhost:3000/auth/',requestOptions)
+                .pipe(map(data=>{
+                   return{
+                    "result":data
+                   }
+
+                }))
+              }
+             
+
+}
+
+
+18. In consume.component.html
+
+<p>consume works!</p>
+<button (click)="fetchDetails()">fetch</button>
+
+{{name}}
+{{work}}
+
+19. In consume.component.ts
+
+
+import { Component } from '@angular/core';
+import { JwtService } from '../jwt.service';
+
+@Component({
+  selector: 'app-consume',
+  templateUrl: './consume.component.html',
+  styleUrls: ['./consume.component.css']
+})
+export class ConsumeComponent {
+  name:any;
+work:any;
+  constructor(private jwtservice:JwtService){}
+  fetchDetails(){
+    console.log("fetchdetails"+localStorage.getItem('access_token'));
+this.jwtservice.getRepos(localStorage.getItem('access_token'))
+.subscribe((data)=>{
+  console.log(data);
+  console.log(data.result.data.name);
+   console.log(data.result.data.work);
+   this.name=data.result.data.name;
+   this.work=data.result.data.work
+  },()=>{
+   alert("error raised")
+   this.name='';
+   this.work='';
+  })   
+     
+    
+     
+ 
+    }
+ 
+}
+
+20. ng serve --open (test the same, what you tested in postman).
+=================================================================
+Note:
+a). if *ngIf used in the component then commonModule is required to imports
+b). for httpClient we need to add additionally provider provideHttpClient(), in app.config.ts
+c). include all the new component reference as imports in app component.
+d). not required app.module in higher version
+
+21. In app.module.ts
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { HttpClientModule } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { LoginComponent } from './login/login.component';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatCardModule } from '@angular/material/card';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ConsumeComponent } from './consume/consume.component';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    LoginComponent,
+    ConsumeComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HttpClientModule,
+    BrowserAnimationsModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatRadioModule,
+    MatCardModule,
+    ReactiveFormsModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+===================================================================================
