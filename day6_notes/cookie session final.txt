@@ -1,0 +1,31 @@
+'use strict'
+
+/**
+ * Module dependencies.
+ */
+const express = require('express');
+const cookieSession = require('cookie-session');
+
+// Create an express app
+const app = express();
+
+// Use cookieSession middleware to manage session using cookies
+app.use(cookieSession({ secret: ' Always cool', maxAge: 24 * 60 * 60 * 1000 })); // 1 day maxAge for the session
+
+// Root route that counts page views
+app.get('/', function (req, res) {
+  // Initialize or update the session count
+  req.session.count = (req.session.count || 0) + 1;
+
+  // Send response with the number of views
+  res.send(`You have viewed this page ${req.session.count} times\n`);
+});
+
+// Check if the file is being executed directly (not required as a module)
+if (require.main === module) {
+  app.listen(3000, () => {
+    console.log('Express app started on port 3000');
+  });
+}
+
+module.exports = app;

@@ -1,0 +1,103 @@
+npm init -y
+npm install express morgan cookie-parser
+
+'use strict'
+
+/**
+ * Module dependencies.
+ */
+
+var express = require('express');
+var app = express();
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+
+// custom log format
+if (process.env.NODE_ENV !== 'test') app.use(logger(':method :url'));
+
+// parses request cookies, populating req.cookies and req.signedCookies
+// when the secret is passed, used for signing the cookies.
+app.use(cookieParser('my secret here'));
+
+// parses x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+// Root route, checks for cookie 'remember'
+app.get('/', function (req, res) {
+  if (req.cookies.remember) {
+    res.send('You are remembered! <a href="/forget">Forget me</a>');
+  } else {
+    res.send('<form method="post"><p>Check to <label>'
+      + '<input type="checkbox" name="remember"/> remember me</label> '
+      + '<input type="submit" value="Submit"/>.</p></form>');
+  }
+});
+
+// 'Forget me' route to clear cookie
+app.get('/forget', function (req, res) {
+  res.clearCookie('remember');
+  res.redirect(req.get('Referrer') || '/');
+});
+
+// POST route to set the 'remember' cookie
+app.post('/', function (req, res) {
+  var minute = 60000; // 1 minute
+
+  if (req.body && req.body.remember) {
+    res.cookie('remember', 1, { maxAge: minute });
+  }
+
+  res.redirect(req.get('Referrer') || '/');
+});
+
+if (!module.parent) {
+  app.listen(3000, function() {
+    console.log('Express app started on port 3000');
+  });
+}
+
+----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

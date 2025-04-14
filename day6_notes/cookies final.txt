@@ -1,0 +1,231 @@
+angular-session-auth/
+├── backend/        ← Express server with session/cookie auth
+└── frontend/       ← Angular app (standalone)
+
+mkdir backend && cd backend
+npm init -y
+npm install express cors express-session body-parser
+
+Create `server.js`
+
+const express = require('express');
+const cors = require('cors');
+const session = require('express-session');
+const bodyParser = require('body-parser');
+
+const app = express();
+const PORT = 3000;
+
+// CORS for Angular
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true
+}));
+
+app.use(bodyParser.json());
+
+// Session setup
+app.use(session({
+  secret: 'secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false, // set true if HTTPS
+    maxAge: 1000 * 60 * 15 // 15 minutes
+  }
+}));
+
+// Dummy login endpoint
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'admin' && password === 'password') {
+    req.session.user = { username };
+    res.send({ message: 'Login successful' });
+  } else {
+    res.status(401).send({ message: 'Invalid credentials' });
+  }
+});
+
+// Authenticated route
+app.get('/api/dashboard', (req, res) => {
+  if (req.session.user) {
+    res.send({ message: `Welcome ${req.session.user.username}!` });
+  } else {
+    res.status(401).send({ message: 'Unauthorized' });
+  }
+});
+
+// Logout
+app.post('/api/logout', (req, res) => {
+  req.session.destroy();
+  res.send({ message: 'Logged out' });
+});
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+---------------------------------------------------------------------------------------------
+Angular Frontend Setup
+
+cd ..
+ng new frontend --standalone --routing --style=css
+cd frontend
+
+1. AuthService – `src/app/auth.service.ts`
+
+```ts
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private api = 'http://localhost:3000/api';
+
+  constructor(private http: HttpClient) {}
+
+  login(username: string, password: string) {
+    return this.http.post(`${this.api}/login`, { username, password }, { withCredentials: true });
+  }
+
+  getDashboard() {
+    return this.http.get(`${this.api}/dashboard`, { withCredentials: true });
+  }
+
+  logout() {
+    return this.http.post(`${this.api}/logout`, {}, { withCredentials: true });
+  }
+}
+
+2. LoginComponent
+
+```bash
+ng generate standalone component login
+```
+
+Replace with:
+
+
+
+<p>login works!</p>
+<h2>Login</h2>
+<form (ngSubmit)="onLogin()">
+  <input [(ngModel)]="username" name="username" placeholder="Username" required />
+  <input [(ngModel)]="password" name="password" type="password" placeholder="Password" required />
+  <button type="submit">Login</button>
+  <p *ngIf="error" style="color:red">{{ error }}</p>
+</form>
+
+
+
+```ts
+import { Component } from '@angular/core';
+import { AuthService } from '../auth.service';
+import { Router } from '@angular/router';  // Corrected import
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-login',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']  // Fixed typo: styleUrl -> styleUrls
+})
+export class LoginComponent {
+  username = '';
+  password = '';
+  error = '';
+
+  constructor(private auth: AuthService, private router: Router) {}
+
+  onLogin() {
+    this.auth.login(this.username, this.password).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: err => this.error = err.error.message
+    });
+  }
+}
+3. DashboardComponent
+
+```bash
+ng generate standalone component dashboard
+```
+
+Replace with:
+
+```ts
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../auth.service';
+import { Router } from '@angular/router';  // Corrected import
+
+@Component({
+  selector: 'app-dashboard',
+  imports: [],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css'
+})
+export class DashboardComponent implements OnInit {
+  message = '';
+
+  constructor(private auth: AuthService, private router: Router) {}
+
+  ngOnInit() {
+    this.auth.getDashboard().subscribe({
+      next: (res: any) => this.message = res.message,
+      error: () => this.router.navigate(['/login'])
+    });
+  }
+
+  logout() {
+    this.auth.logout().subscribe(() => this.router.navigate(['/login']));
+  }
+}
+
+<p>dashboard works!</p>
+<h2>Dashboard</h2>
+<p>{{ message }}</p>
+<button (click)="logout()">Logout</button>
+
+
+4. Routing – `src/app/app.routes.ts`
+
+import { Routes } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'dashboard', component: DashboardComponent }
+];
+
+5. `main.ts`
+
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { routes } from './app/app.routes';
+import { LoginComponent } from './app/login/login.component';
+
+bootstrapApplication(LoginComponent, {
+  providers: [provideRouter(routes), provideHttpClient()]
+});
+
+Final Step: Run It
+
+Start Backend
+
+cd backend
+node server.js
+
+Start Angular Frontend
+
+cd frontend
+ng serve
+
+Open `http://localhost:4200`
+
+- Login with `admin / password`
+- Session cookie is set by Express
+- Dashboard only loads if cookie is valid
+- Logout clears session
+-----------------------------------------------------------------------------------
