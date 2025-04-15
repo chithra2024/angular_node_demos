@@ -1,0 +1,149 @@
+Helmet.js
+
+helmet.js is an important security middleware for Express applications. Its main purpose is to help protect your app from common web vulnerabilities by setting various HTTP headers.
+
+Why use helmet?
+---------------
+Web apps are vulnerable to many attacks like:
+
+Cross-Site Scripting (XSS)
+
+Clickjacking
+
+MIME-sniffing
+
+Information disclosure in HTTP headers
+
+helmet makes it easy to secure your app by setting smart, secure headers out of the box.
+
+What does Helmet do?
+Here are some key things it does under the hood:
+
+Helmet Feature				Protects Against
+==========================================================
+X-DNS-Prefetch-Control			DNS prefetching attacks
+Frameguard				Clickjacking (prevents iframe loading)
+XSS-Filter				Basic XSS attacks
+NoSniff					MIME type sniffing
+HSTS					Enforces HTTPS
+Referrer-Policy				Controls how much referrer info is sent
+
+---------------------------------------------------------------
+npm init -y
+
+npm install express helmet cors
+
+index.js
+
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+
+const app = express();
+
+// Enable Helmet for security headers
+ app.use(helmet());
+
+// Enable CORS to allow Angular frontend to communicate
+app.use(cors());
+
+// Define a simple GET API
+app.get("/", (req, res) => {
+  res.json({ message: "Hello from Secure Node.js Backend!" });
+});
+
+// Start the server
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+node index.js
+
+verify in postman -> response header.
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+npm init -y
+npm install express helmet cors
+
+Create `server.js`
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+
+const app = express();
+app.use(express.json()); // Enable JSON parsing
+
+// Enable CORS with specific origin
+app.use(cors({
+    origin: "http://localhost:4200", // Allow Angular app
+    methods: ["GET", "POST"]
+}));
+
+// Apply Content Security Policy (CSP)
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:"]
+    }
+}));
+
+// Test GET API
+app.get("/api/data", (req, res) => {
+    res.json({ message: "GET request successful" });
+});
+
+// Test POST API
+app.post("/api/data", (req, res) => {
+    const { name } = req.body;
+    res.json({ message: `Hello, ${name}!` });
+});
+
+// Start server
+app.listen(3000, () => {
+    console.log("Server running on http://localhost:3000");
+});
+
+Testing with Postman
+node server.js
+
+- Open Postman.
+Get Method:
+- Enter URL: `http://localhost:3000/api/data`
+- Expected Response:
+  {
+    "message": "GET request successful"
+  }
+  ```
+- Check Headers:  
+  - In the Headers tab, check for CSP headers like `content-security-policy`.
+  - Ensure `access-control-allow-origin` is `http://localhost:4200`.
+
+
+POST Method.
+- Enter URL: `http://localhost:3000/api/data`
+  {
+    "name": "John"
+  }
+
+response:
+  {
+    "message": "Hello, John!"
+  }
+
+
+- Check Header.
+-----------------------------------------------------------------------------------------------------
+
+we can configure:
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disable specific headers if needed
+  })
+);
+
+--------------------------------------------------------------------------------------------------------
