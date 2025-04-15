@@ -1,0 +1,148 @@
+ng new domsan
+
+cd domsan
+
+ng g interceptor logging
+
+logging.interceptor.ts
+
+import { HttpInterceptorFn } from '@angular/common/http';
+
+export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
+  console.log('Request:', req.url);
+  return next(req);
+};
+
+
+app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { loggingInterceptor } from './logging.interceptor';
+
+export const appConfig: ApplicationConfig = {
+
+  
+  providers: [
+    provideHttpClient(withInterceptors([loggingInterceptor])),
+
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+
+
+main.ts
+
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+
+
+app.routes.ts
+
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [];
+
+ng g c dogviewer
+
+
+app.component.html
+
+
+
+<app-dogviewer></app-dogviewer>
+<router-outlet />
+
+
+app.component.ts
+
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { DogviewerComponent } from './dogviewer/dogviewer.component';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet,DogviewerComponent],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'domsan';
+}
+
+
+dogviewer.component.html
+
+<p>dogviewer works!</p>
+<div class="container">
+    <h2>🐶 Random Dog Viewer</h2>
+    <button (click)="fetchDog()" [disabled]="loading">Get Random Dog</button>
+
+    <div *ngIf="loading" class="spinner"></div>
+
+    <div *ngIf="dogImageUrl && !loading">
+      <img [src]="dogImageUrl" alt="Random Dog" class="dog-img" />
+    </div>
+  </div>
+
+
+dogviewer.component.ts
+
+import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Component } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
+@Component({
+  selector: 'app-dogviewer',
+  imports: [CommonModule],
+  templateUrl: './dogviewer.component.html',
+  styleUrl: './dogviewer.component.css'
+})
+export class DogviewerComponent {
+  dogImageUrl: SafeResourceUrl | null = null;
+  loading = false;
+
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+
+  fetchDog() {
+    this.loading = true;
+    this.http.get<any>('https://dog.ceo/api/breeds/image/random')
+      .subscribe({
+        next: (res) => {
+          this.dogImageUrl = this.sanitizer.bypassSecurityTrustResourceUrl(res.message);
+          this.loading = false;
+        },
+        error: () => {
+          this.dogImageUrl = null;
+          this.loading = false;
+        }
+      });
+  }
+}
+
+
+dogviewer.component.css
+
+.container { text-align: center; margin-top: 50px; }
+    .dog-img { width: 300px; height: auto; margin-top: 20px; border-radius: 10px; }
+    .spinner {
+      margin: 20px auto;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0,0,0,0.1);
+      border-left-color: #09f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }

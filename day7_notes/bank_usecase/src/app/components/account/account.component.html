@@ -1,0 +1,75 @@
+<h2>Account Management</h2>
+
+<!-- Add Account Form -->
+<form (submit)="onSubmit($event)" >
+  <label for="name">Name:</label>
+  <input id="name" [(ngModel)]="newAccount.accountHolderName" name="name" required />
+
+  <label for="balance">Balance:</label>
+  <input
+    id="balance"
+    type="number"
+    [(ngModel)]="newAccount.balance"
+    name="balance"
+    required
+  />
+
+  <button type="submit">Add Account</button>
+  <button type="reset" >Clear</button>
+
+</form>
+
+<h3>Account List</h3>
+<table>
+    <thead>
+      <tr>
+        <th>Account Number</th>
+        <th>Account Holder Name</th>
+        <th>Balance</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for( account of accounts;track  account.id) {
+      <tr>
+
+        <td>{{ account.accountNumber }}</td>
+        <td>{{ account.accountHolderName }}</td>
+        <td>{{ account.balance }}</td>
+        <td>
+          <button (click)="editAccount(account)">Edit</button>
+          <button (click)="deleteAccount(account.id)">Delete</button>
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+
+<!-- Edit Account Form -->
+ @if (editingAccount) {
+<div >
+  <h3>Edit Account</h3>
+  <form (ngSubmit)="updateAccount()" #editForm="ngForm">
+    <label for="editName">Name:</label>
+    <input
+      id="editName"
+      [(ngModel)]="editingAccount.accountHolderName"
+      name="editName"
+      required
+    />
+
+    <label for="editBalance">Balance:</label>
+    <input
+      id="editBalance"
+      type="number"
+      [(ngModel)]="editingAccount.balance"
+      name="editBalance"
+      required
+    />
+
+    <button type="submit">Update Account</button>
+    <button type="button" (click)="cancelEdit()">Cancel</button>
+  </form>
+</div>
+ }
+

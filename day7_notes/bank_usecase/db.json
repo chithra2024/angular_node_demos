@@ -1,0 +1,22 @@
+{
+  "accounts": [
+    {
+      "id": "1",
+      "accountNumber": "12345",
+      "accountHolderName": "John Doe",
+      "balance": 6000
+    },
+    {
+      "id": "2",
+      "accountNumber": "12346",
+      "accountHolderName": "Jane Smith",
+      "balance": 3000
+    },
+    {
+      "id": "cc0f",
+      "accountHolderName": "pop",
+      "balance": 100,
+      "accountNumber": "12347"
+    }
+  ]
+}
