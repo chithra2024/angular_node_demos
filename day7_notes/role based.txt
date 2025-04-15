@@ -1,0 +1,196 @@
+server.js
+---------
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+
+const users = [
+  { username: 'admin', password: 'admin123', role: 'admin' },
+  { username: 'user', password: 'user123', role: 'user' }
+];
+
+// Simulate a logged-in user (not for real apps)
+let currentUser = null;
+
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username && u.password === password);
+  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+  currentUser = user; // Simulate login
+  res.json({ username: user.username, role: user.role });
+});
+
+app.get('/api/user', (req, res) => {
+  if (!currentUser) return res.sendStatus(401);
+  res.json({ message: `Hello ${currentUser.username}, role: ${currentUser.role}` });
+});
+
+app.get('/api/admin', (req, res) => {
+  if (!currentUser) return res.sendStatus(401);
+  if (currentUser.role !== 'admin') return res.sendStatus(403);
+  res.json({ message: `Admin area for ${currentUser.username}` });
+});
+
+app.post('/api/logout', (req, res) => {
+  currentUser = null;
+  res.sendStatus(200);
+});
+
+app.listen(3000, () => console.log('Server running on http://localhost:3000'));
+
+--------------------------------
+
+front end:
+
+auth.service.ts
+
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+
+  private user: { username: string; role: string } | null = null;
+
+  setUser(user: any) {
+    this.user = user;
+  }
+
+  clearUser() {
+    this.user = null;
+  }
+
+  getUser() {
+    return this.user;
+  }
+
+  getRole() {
+    return this.user?.role;
+  }
+
+  isLoggedIn() {
+    return !!this.user;
+  }
+}
+
+
+role.guard.ts
+
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from './auth.service';
+import { inject } from '@angular/core';
+
+export function roleGuard(expectedRole: string): CanActivateFn {
+  return () => {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    const role = auth.getRole();
+    if (role === expectedRole) return true;
+    router.navigate(['/unauthorized']);
+    return false;
+  };
+}
+
+
+app.routes.ts
+
+import { Routes } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { roleGuard } from './role.guard';
+
+export const routes: Routes = [
+    { path: '', component: LoginComponent },
+  { path: 'user', loadComponent: () => import('./user/user.component').then(m => m.UserComponent) },
+  { path: 'admin', loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent), canActivate: [roleGuard('admin')] },
+  { path: 'unauthorized', loadComponent: () => import('./unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) }
+];
+
+
+
+app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+app.component.html
+
+
+<router-outlet />
+
+
+login.component.html
+
+<p>login works!</p>
+<h2>Login </h2>
+    <form (ngSubmit)="login()">
+      <input [(ngModel)]="username" name="username" placeholder="Username" required />
+      <input [(ngModel)]="password" name="password" type="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+
+login.component.ts
+
+import { HttpClient } from '@angular/common/http';
+import { Component } from '@angular/core';
+import { AuthService } from '../auth.service';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-login',
+  imports: [FormsModule],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
+})
+export class LoginComponent {
+  username = '';
+  password = '';
+
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router) {}
+
+  login() {
+    this.http.post<any>('http://localhost:3000/api/login', { username: this.username, password: this.password })
+      .subscribe({
+        next: (res) => {
+          this.auth.setUser(res);
+          this.router.navigate([res.role === 'admin' ? '/admin' : '/user']);
+        },
+        error: () => alert('Login failed')
+      });
+  }
+}
+
+
+admin.component.html
+
+<p>admin works!</p>
+
+
+unauthorized.component.html
+
+<p>unauthorized works!</p>
+
+user.component.html
+
+<p>user works!</p>
+
+
+
+Correct username/password->	Goes to /admin or /user
+Wrong credentials->	Shows alert, stays on login
+Logged-in user types /admin->	Guard fails, redirects to /unauthorized
