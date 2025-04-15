@@ -1,0 +1,35 @@
+npm install nodemailer
+
+server.js
+
+const nodemailer = require('nodemailer');
+
+// Replace these with your Gmail + App Password
+const senderEmail = 'sarmca2009@gmail.com';
+const appPassword = ''; // from Google App Passwords
+const recipientEmail = 'sarmca2009@gmail.com';
+
+// Create a transporter using Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: senderEmail,
+    pass: appPassword
+  }
+});
+
+// Compose email
+const mailOptions = {
+  from: senderEmail,
+  to: recipientEmail,
+  subject: 'Your OTP Code',
+  text: `Your OTP is: ${Math.floor(100000 + Math.random() * 900000)}`
+};
+
+// Send it!
+transporter.sendMail(mailOptions, (error, info) => {
+  if (error) {
+    return console.log(' Error:', error);
+  }
+  console.log(' Email sent:', info.response);
+});
