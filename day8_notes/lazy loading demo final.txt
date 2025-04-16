@@ -1,0 +1,119 @@
+Angular Lazy Loading App
+========================
+
+1. Create a New Angular Project
+
+ng new lazydemo --no-standalone
+cd lazydemo
+
+2. Create Home Module and Component
+
+ng g module home
+ng g component home/home
+
+This creates:
+- `home.module.ts`
+- `home/home.component.ts`, etc.
+
+3.Create Admin Module with Lazy Loading Setup
+
+ng g module admin --route admin --module app.module
+
+This command:
+- Creates the `admin` folder with `admin.module.ts` and `admin-routing.module.ts`
+- Automatically adds a lazy route in `app-routing.module.ts`
+
+//optional
+//ng g component admin
+//ng g component admin/admin-dashboard
+
+4. Update Routing
+
+app-routing.module.ts
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { HomeComponent } from './home/home/home.component';
+
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+admin-routing.module.ts
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { AdminComponent } from './admin.component';
+
+const routes: Routes = [
+  { path: '', component: AdminComponent }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class AdminRoutingModule { }
+
+
+5. Update app.module.ts
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+
+import { HomeModule } from './home/home.module';
+
+@NgModule({
+  declarations: [
+    AppComponent
+    
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HomeModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+6. Update Templates
+
+`app.component.html`
+
+<h2>Angular Lazy Loading Demo</h2>
+<nav>
+  <a routerLink="">Home</a> |
+  <a routerLink="admin">Admin (Lazy Loaded)</a>
+</nav>
+<router-outlet></router-outlet>
+
+
+`home.component.html`
+
+<p>home works!</p>
+<h3>Welcome to the Home Page</h3>
+
+`admin.component.html`
+
+<p>admin works!</p>
+<h3>Admin component (Loaded Lazily)</h3>
+
+7. Serve the App
+
+ng serve
+
+
+In DevTools → Network tab, you’ll see a separate JS file loaded (e.g., `admin-admin-module.js`) when you click the "Admin" link — that confirms lazy loading is working.
+--------------------------------------------------------------------------------------------------------------------------------------
