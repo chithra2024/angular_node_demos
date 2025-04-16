@@ -1,0 +1,51 @@
+parent component
+
+    <button (click)="mutate()">Mutate Property</button>
+    <button (click)="replace()">Replace Object</button>
+    <app-child [data]="messageObj"></app-child>
+
+import { Component } from '@angular/core';
+import { ChildComponent } from '../child/child.component';
+
+@Component({
+  selector: 'app-parent',
+  imports: [ChildComponent],
+  templateUrl: './parent.component.html',
+  styleUrl: './parent.component.css'
+})
+export class ParentComponent {
+  messageObj = { message: 'Hello' };
+
+  mutate() {
+    // This does NOT change the reference => OnPush child won't detect this
+    this.messageObj.message += '!';
+  }
+
+  replace() {
+    // This changes the object reference => OnPush child WILL detect this
+    this.messageObj = { message: this.messageObj.message + '!' };
+  }
+
+
+}
+
+-------------------------------------------------------------------------------------
+
+child component
+
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-child',
+  imports: [],
+  templateUrl: './child.component.html',
+  styleUrl: './child.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ChildComponent {
+  @Input() data!: { message: string };
+}
+
+
+<p>child works!</p>
+<p>Child works! {{ data.message }}</p>

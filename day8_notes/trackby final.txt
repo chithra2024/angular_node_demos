@@ -1,0 +1,71 @@
+To implement `trackBy` with `ngFor` in Angular for improving rendering performance, you'll need to use the `trackBy` function to help Angular identify items in a list uniquely. This helps Angular optimize DOM updates when the list changes by avoiding unnecessary re-rendering of items.
+------------------------------------------------------------------------------------------------------------------------------------------
+
+// app.component.ts
+import { Component, TrackByFunction } from '@angular/core';
+
+interface Item {
+  id: number;
+  name: string;
+}
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <h2>Without trackBy (Potential Performance Issues)</h2>
+    <button (click)="updateItemsWithoutTrackBy()">Update Items (Without trackBy)</button>
+    <ul>
+      <li *ngFor="let item of itemsWithoutTrackBy">
+        {{ item.name }} (ID: {{ item.id }})
+      </li>
+    </ul>
+
+    <h2>With trackBy (Improved Performance)</h2>
+    <button (click)="updateItemsWithTrackBy()">Update Items (With trackBy)</button>
+    <ul>
+      <li *ngFor="let item of itemsWithTrackBy; trackBy: trackById">
+        {{ item.name }} (ID: {{ item.id }})
+      </li>
+    </ul>
+
+    <p>Console log will show the difference.</p>
+  `,
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  itemsWithoutTrackBy: Item[] = [
+    { id: 1, name: 'Item 1' },
+    { id: 2, name: 'Item 2' },
+    { id: 3, name: 'Item 3' }
+  ];
+
+  itemsWithTrackBy: Item[] = [
+    { id: 1, name: 'Item 1' },
+    { id: 2, name: 'Item 2' },
+    { id: 3, name: 'Item 3' }
+  ];
+
+  updateItemsWithoutTrackBy(): void {
+    console.log('Update without trackBy');
+    this.itemsWithoutTrackBy = this.itemsWithoutTrackBy.map(item => ({
+      ...item,
+      name: item.name + ' (Updated)'
+    }));
+  }
+
+  updateItemsWithTrackBy(): void {
+    console.log('Update with trackBy');
+    this.itemsWithTrackBy = this.itemsWithTrackBy.map(item => ({
+      ...item,
+      name: item.name + ' (Updated)'
+    }));
+  }
+
+  trackById: TrackByFunction<Item> = (index: number, item: Item) => item.id;
+}
+
+ By using trackby, the dom elements are not destroyed and recreated, instead the values inside the dom elements are updated.
+
+use browser tools F12 -> Performance monitoring tools. view the difference.
+
+---------------------------------------------------------------------------------------------------------------------------
