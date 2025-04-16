@@ -1,0 +1,52 @@
+
+ `*trackBy` in Angular (`*ngFor`)
+- Purpose: Optimizes `*ngFor` by tracking items uniquely to reduce DOM manipulation.
+- Syntax:
+  <div *ngFor="let item of items; trackBy: trackByFn">{{ item.name }}</div>
+  Function:
+  
+  trackByFn(index: number, item: any) {
+    return item.id; // or any unique identifier
+  }
+  
+- Why? Prevents unnecessary re-rendering when the list updates.
+
+-------------------------------------------------------------------------------------------------------------------
+
+ `shareReplay` (RxJS operator)
+- Purpose: Shares the result of an observable and replays the last emitted value to new subscribers.
+- Syntax:
+  
+  this.cached$ = this.http.get('/api/data').pipe(
+    shareReplay(1)
+  );
+  
+- Why? Prevents multiple HTTP calls and shares the same data across components.
+
+----------------------------------------------------------------------------------------------------------------------
+
+`debounceTime` (RxJS operator)
+- Purpose: Delays emitted values by a specified time. Useful for input filtering (e.g., search box).
+- Syntax:
+  
+  this.searchControl.valueChanges.pipe(
+    debounceTime(300)
+  ).subscribe(value => this.search(value));
+  
+- Why? Reduces the number of calls (e.g., API hits) while typing.
+
+-----------------------------------------------------------------------------------------------------------------------
+`ChangeDetectionStrategy.OnPush`
+- Purpose: Optimizes performance by checking component updates only when input properties change or events are triggered.
+- Usage:
+  
+  @Component({
+    selector: 'app-my-component',
+    templateUrl: './my.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
+  })
+  
+- Why? Improves performance by skipping unnecessary change detection cycles.
+
+---------------------------------------------------------------------------------------------------------------------------
+

@@ -1,0 +1,90 @@
+weather.service.ts
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable, shareReplay } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class WeatherService {
+
+  private cache: { [city: string]: Observable<any> } = {};
+
+  constructor(private http: HttpClient) {}
+  getWeather(city: string): Observable<any> {
+    if (!this.cache[city]) {
+      console.log(`Fetching new data for: ${city}`);
+      this.cache[city] = this.http
+        .get(`https://wttr.in/${city}?format=j1`)
+        .pipe(
+          shareReplay(1) // Cache the latest response
+        );
+    } else {
+      console.log(`Using cached data for: ${city}`);
+    }
+    return this.cache[city];
+  }
+ 
+}
+
+
+app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+
+app.component.html
+
+<h1>Welcome to Angular</h1>
+<input [formControl]="cityControl" placeholder="Enter city name" />
+    <div *ngIf="weatherData">
+      <h4>Weather in {{ cityControl.value }}</h4>
+      <pre>{{ weatherData | json }}</pre>
+    </div>
+<router-outlet />
+
+app.component.ts
+
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, TrackByFunction } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import {  debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { WeatherService } from './weather.service';
+
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet,CommonModule,ReactiveFormsModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  cityControl = new FormControl('');
+  weatherData: any;
+
+  constructor(private weatherService: WeatherService) {
+    this.cityControl.valueChanges
+    .pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      filter((city): city is string => typeof city === 'string' && city.trim() !== ''),
+      switchMap((city: string) => this.weatherService.getWeather(city))
+    )
+    .subscribe((data) => {
+      this.weatherData = data;
+    });
+  
+  }
+}

@@ -1,0 +1,192 @@
+IndexedDB is a low-level API for client-side storage of significant amounts of structured data, including files and blobs. It allows you to store and retrieve data in the browser in a way that’s asynchronous, transactional, and more efficient than alternatives like localStorage.
+
+In Angular, IndexedDB is typically used for offline storage, caching, and performance optimization. Angular doesn’t provide a direct API for IndexedDB, but you can use the native browser API or third-party libraries to integrate it.
+
+ 1. Set Up a Basic Angular Project
+
+Let’s first create a basic Angular project:
+
+ng new indexeddb-demo
+cd indexeddb-demo
+
+2. Install `idb` Library (Optional)
+
+While Angular doesn't have native support for IndexedDB, there’s a lightweight wrapper called `idb` that simplifies working with IndexedDB.
+
+Install it via npm:
+
+npm install idb
+
+3. Create a Service for IndexedDB Operations
+
+Create a service that will manage interactions with IndexedDB. In this example, the service will handle storing, retrieving, and deleting items.
+
+ng generate service indexed-db
+
+4. Modify the Service to Use `idb`
+
+Edit the `indexed-db.service.ts` to use the `idb` library for IndexedDB operations.
+
+`indexed-db.service.ts`
+
+import { Injectable } from '@angular/core';
+import { DBSchema, IDBPDatabase, openDB } from 'idb';
+
+
+interface MyDatabase extends DBSchema {
+  users: {
+    key: number;
+    value: { id: number, name: string };
+    indexes: { 'by-name': string };
+  };
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class IndexedDbService {
+
+  private dbPromise: Promise<IDBPDatabase<MyDatabase>>;
+
+  constructor() {
+    this.dbPromise = openDB<MyDatabase>('myDatabase', 1, {
+      upgrade(db) {
+        const store = db.createObjectStore('users', {
+          keyPath: 'id',
+          autoIncrement: true
+        });
+        store.createIndex('by-name', 'name');
+      }
+    });
+  }
+
+  async addUser(name: string) {
+    const db = await this.dbPromise;
+    const tx = db.transaction('users', 'readwrite');
+    const store = tx.objectStore('users');
+    const user = { id: Date.now(), name }; // ensure `id` is set manually if not using autoIncrement
+    await store.add(user);
+    await tx.done;
+  }
+
+  async getAllUsers() {
+    const db = await this.dbPromise;
+    return db.getAll('users');
+  }
+
+  async getUserByName(name: string) {
+    const db = await this.dbPromise;
+    return db.getAllFromIndex('users', 'by-name', name);
+  }
+
+  async deleteUser(id: number) {
+    const db = await this.dbPromise;
+    await db.delete('users', id);
+  }
+
+}
+
+
+5. Create a Component to Interact with the Service
+
+Now, create a simple component to demonstrate adding, retrieving, and deleting users from the IndexedDB.
+
+ng generate component user-management
+
+`user-management.component.ts`
+
+import { Component } from '@angular/core';
+import { IndexedDbService } from '../indexed-db.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-user-management',
+  imports: [CommonModule,FormsModule],
+  templateUrl: './user-management.component.html',
+  styleUrl: './user-management.component.css'
+})
+export class UserManagementComponent {
+  users: any[] = [];
+  userName: string = '';
+
+  constructor(private indexedDbService: IndexedDbService) {}
+
+  async addUser() {
+    if (this.userName) {
+      await this.indexedDbService.addUser(this.userName);
+      this.userName = '';
+      this.loadUsers();
+    }
+  }
+
+  async loadUsers() {
+    this.users = await this.indexedDbService.getAllUsers();
+  }
+
+  async deleteUser(id: number) {
+    await this.indexedDbService.deleteUser(id);
+    this.loadUsers();
+  }
+
+  // async searchByName(name: string) {
+  //   this.users = await this.indexedDbService.getUserByName(name);
+  // }
+  searchTerm: string = '';
+  filteredUsers: any[] = [];
+  
+ async searchByName(name: string) {
+    this.indexedDbService.getUserByName(name).then(users => {
+      this.filteredUsers = users;
+    });
+  }
+}
+
+
+`user-management.component.html`
+
+<p>user-management works!</p>
+<div>
+    <h1>User Management</h1>
+  
+    <input type="text" [(ngModel)]="userName" placeholder="Enter user name" />
+    <button (click)="addUser()">Add User</button>
+  
+    <h2>Users</h2>
+    <ul>
+      <li *ngFor="let user of users">
+        {{ user.name }} <button (click)="deleteUser(user.id)">Delete</button>
+      </li>
+    </ul>
+ 
+    <input
+  type="text"
+  [(ngModel)]="searchTerm"
+  (ngModelChange)="searchByName($event)"
+  placeholder="Search by name"
+/>
+
+<ul>
+  <li *ngFor="let user of filteredUsers">
+    {{ user.name }}
+  </li>
+</ul>
+
+  </div>
+  
+ 6. Modify  component imports to Include FormsModule and CommonModule
+
+ 7. Run the Application
+
+
+ng serve
+
+ 8. Test the Application
+
+- When the application loads, you’ll be able to:
+  - Add users to the IndexedDB.
+  - View the list of users stored in the IndexedDB.
+  - Delete users from the IndexedDB.
+  - Search users by name.
+  
+The data is stored in the browser's IndexedDB, so if you refresh the page, the data persists.
+
