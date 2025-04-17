@@ -1,0 +1,47 @@
+
+ng generate service services/math
+
+`math.service.ts`
+
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MathService {
+  add(a: number, b: number): number {
+    return a + b;
+  }
+}
+
+
+Jasmine Parameterized Test (using `forEach`)
+
+`math.service.spec.ts`
+
+import { TestBed } from '@angular/core/testing';
+import { MathService } from './math.service';
+
+describe('MathService (Parameterized)', () => {
+  let service: MathService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(MathService);
+  });
+
+  const testCases = [
+    { a: 1, b: 2, expected: 3 },
+    { a: -1, b: -1, expected: -2 },
+    { a: 100, b: 200, expected: 300 },
+    { a: 0, b: 0, expected: 0 }
+  ];
+
+  testCases.forEach(({ a, b, expected }) => {
+    it(`should return ${expected} for add(${a}, ${b})`, () => {
+      expect(service.add(a, b)).toBe(expected);
+    });
+  });
+});
+-------------------------------------------------------------------------------------------------------------------------------
+
