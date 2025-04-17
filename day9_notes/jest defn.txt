@@ -1,0 +1,266 @@
+
+   npm install --save-dev jest @types/jest jest-preset-angular
+
+2. Create or modify your Jest configuration file (`jest.config.js` in your project root):
+   
+   module.exports = {
+     preset: 'jest-preset-angular',
+     setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
+     testPathIgnorePatterns: [
+       '<rootDir>/node_modules/',
+       '<rootDir>/dist/'
+     ],
+     globals: {
+       'ts-jest': {
+         tsconfig: '<rootDir>/tsconfig.spec.json'
+       }
+     }
+   };
+   
+3. Create a setup file (`setup-jest.ts`):
+   
+   import 'jest-preset-angular/setup-jest';
+   
+4. Update your `package.json` test scripts:
+   "scripts": {
+     "test": "jest",
+     "test:watch": "jest --watch"
+   }
+   
+
+
+// hero.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-hero',
+  template: '<h1>{{title}}</h1>'
+})
+export class HeroComponent {
+  title = 'Hero Component';
+}
+
+// hero.component.spec.ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HeroComponent } from './hero.component';
+
+describe('HeroComponent', () => {
+  let component: HeroComponent;
+  let fixture: ComponentFixture<HeroComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [HeroComponent]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(HeroComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should have title "Hero Component"', () => {
+    expect(component.title).toEqual('Hero Component');
+  });
+
+  it('should render title in h1 tag', () => {
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('h1').textContent).toContain('Hero Component');
+  });
+});
+
+npm run test
+
+
+
+Jest Matchers
+
+Jest provides many matchers to help you write tests:
+
+- `toBe()` - exact equality
+- `toEqual()` - deep equality for objects
+- `toContain()` - check if array/string contains value
+- `toBeNull()`, `toBeUndefined()`, `toBeDefined()`
+- `toBeTruthy()`, `toBeFalsy()`
+- `toHaveBeenCalled()`, `toHaveBeenCalledWith()` - for spies
+
+Testing Services
+
+export interface Hero {
+    id: number;
+    name: string;
+}
+
+
+// hero.service.ts
+import { Injectable } from '@angular/core';
+import { Hero } from './hero';
+import { Observable, of } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class HeroService {
+  getHero(id: number): Observable<Hero> {
+    return of({ id: id, name: 'Test Hero' });
+  }
+}
+
+// hero.service.spec.ts
+import { TestBed } from '@angular/core/testing';
+import { HeroService } from './hero.service';
+
+describe('HeroService', () => {
+  let service: HeroService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(HeroService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  it('should return hero with specified id', (done) => {
+    service.getHero(1).subscribe(hero => {
+      expect(hero.id).toBe(1);
+      expect(hero.name).toBe('Test Hero');
+      done();
+    });
+  });
+});
+
+
+Testing with Mocks
+
+// Using jest.mock to mock a service
+jest.mock('./hero.service');
+
+import { HeroService } from './hero.service';
+import { of } from 'rxjs';
+
+describe('HeroComponent with mocked service', () => {
+  beforeEach(() => {
+    // Mock implementation
+    (HeroService.prototype.getHero as jest.Mock).mockReturnValue(
+      of({ id: 1, name: 'Mocked Hero' })
+    );
+  });
+  
+  // Tests using mocked service...
+});
+
+
+
+// hero.model.ts
+export interface Hero {
+  id: number;
+  name: string;
+}
+
+// hero.service.ts
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { Hero } from './hero.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class HeroService {
+  getHero(id: number): Observable<Hero> {
+    // In a real service, this might be an HTTP call
+    return of({ id: id, name: `Hero #${id}` });
+  }
+}
+
+// hero.component.ts
+import { Component, OnInit } from '@angular/core';
+import { Hero } from './hero.model';
+import { HeroService } from './hero.service';
+
+@Component({
+  selector: 'app-hero',
+  template: `
+    <div *ngIf="hero">
+      <h2>Hero Details</h2>
+      <div>ID: {{hero.id}}</div>
+      <div>Name: {{hero.name}}</div>
+    </div>
+    <div *ngIf="!hero">Loading hero...</div>
+  `
+})
+export class HeroComponent implements OnInit {
+  hero: Hero | null = null;
+
+  constructor(private heroService: HeroService) {}
+
+  ngOnInit(): void {
+    this.loadHero(1);
+  }
+
+  loadHero(id: number): void {
+    this.heroService.getHero(id).subscribe(hero => {
+      this.hero = hero;
+    });
+  }
+}
+
+// hero.component.spec.ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HeroComponent } from './hero.component';
+import { HeroService } from './hero.service';
+import { of } from 'rxjs';
+import { By } from '@angular/platform-browser';
+
+// Mock the HeroService
+jest.mock('./hero.service');
+
+describe('HeroComponent with mocked service', () => {
+  let component: HeroComponent;
+  let fixture: ComponentFixture<HeroComponent>;
+  let heroService: jest.Mocked<HeroService>;
+
+  beforeEach(async () => {
+    // Configure testing module
+    await TestBed.configureTestingModule({
+      declarations: [HeroComponent],
+      providers: [HeroService]
+    }).compileComponents();
+
+    // Create the component
+    fixture = TestBed.createComponent(HeroComponent);
+    component = fixture.componentInstance;
+    
+    // Get the injected service (which is now a mock)
+    heroService = TestBed.inject(HeroService) as jest.Mocked<HeroService>;
+    
+    // Set up the mock implementation
+    heroService.getHero = jest.fn().mockReturnValue(
+      of({ id: 1, name: 'Mocked Hero' })
+    );
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should load hero on init', () => {
+    // Trigger ngOnInit
+    fixture.detectChanges();
+    
+    // Verify the service was called
+    expect(heroService.getHero).toHaveBeenCalledWith(1);
+    
+    // Check that the component's hero property was set
+    expect(component.hero).toEqual({ id: 1, name: 'Mocked Hero' });
+  });
+
+});
+------------------------------------------------------------------------------------------------------------------
+npm run test
+
+-------------------------------------------------------------------------------------------------------------------

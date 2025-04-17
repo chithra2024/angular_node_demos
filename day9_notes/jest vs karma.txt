@@ -1,0 +1,75 @@
+Jest
+=====
+Created by: Facebook
+
+Type: All-in-one JavaScript testing framework
+
+Use Case: Best for React apps and general unit testing
+
+Runner + Assertion + Mocking: All built-in (no need to configure separately)
+
+Execution: Runs tests in a Node.js environment (not in a real browser)
+
+Speed: Very fast due to parallel test execution and intelligent caching
+
+Setup: Easy to configure and use with zero config for many cases
+
+Snapshot Testing: Built-in support for UI snapshot testing
+
+Code Coverage: Built-in and simple to configure
+
+--------------------------------------------------------------------------
+Jest Pros:
+==========
+Simple and fast
+
+Great for modern frontend (React, Vue, Angular with workarounds)
+
+Rich API and ecosystem
+
+-----------------------------------------------------------------------------
+Karma
+=====
+Created by: AngularJS team (Google)
+
+Type: Test runner (not an assertion library itself)
+
+Use Case: Traditionally used with Angular apps and testing in real browsers
+
+Execution: Launches real browsers (Chrome, Firefox, etc.) to run tests
+
+Assertion & Mocking: Needs external libraries like Jasmine, Mocha, Sinon
+
+Speed: Slower due to starting and managing browsers
+
+Setup: Requires more configuration (karma.conf.js)
+
+Code Coverage: Available via plugins (e.g., karma-coverage)
+
+--------------------------------------------------------------------------
+Karma Pros:
+===========
+Runs in actual browsers (good for integration tests)
+
+Useful for legacy or browser-dependent code
+
+More representative of real-world behavior
+
+----------------------------------------------------------------------------
+When to Use What?
+===============
+Use Jest if:
+============
+You're using React or Vue
+
+You want fast tests and easy setup
+
+You're doing unit or snapshot testing
+
+Use Karma if:
+=============
+You're working with AngularJS or Angular
+
+You need to test in real browser environments
+
+You want to test browser APIs or edge cases
