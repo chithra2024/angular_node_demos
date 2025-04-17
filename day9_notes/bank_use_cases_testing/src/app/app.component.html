@@ -1,0 +1,15 @@
+<div>
+  <!-- Material Toolbar (Top Navigation Bar) -->
+  <mat-toolbar color="primary">
+    <span>Banking Application</span>
+
+    <!-- Right-aligned navigation buttons -->
+    <span class="example-spacer"></span>
+    <button mat-button routerLink="/account-details">Account Details</button>
+    <button mat-button routerLink="/funds-transfer">Funds Transfer</button>
+    <button mat-button routerLink="/transaction-history">Transaction History</button>
+  </mat-toolbar>
+
+  <!-- This is where routed components will appear -->
+  <router-outlet></router-outlet>
+</div>

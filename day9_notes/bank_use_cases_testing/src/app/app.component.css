@@ -1,0 +1,17 @@
+/* styles.css or app.component.css */
+
+mat-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3f51b5; /* Custom background color (e.g., Indigo) */
+    color: white; /* Set text color to white */
+  }
+  
+  .example-spacer {
+    flex: 1 1 auto;
+  }
+  
+  button {
+    color: white;
+  }

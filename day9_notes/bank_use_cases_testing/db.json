@@ -1,0 +1,121 @@
+{
+  "accounts": [
+    {
+      "accountNumber": "1234567890",
+      "accountHolder": "John Doe",
+      "balance": 175,
+      "id": "61e2"
+    },
+    {
+      "accountNumber": "0987654321",
+      "accountHolder": "Jane Smith",
+      "balance": 5000,
+      "id": "e4da"
+    },
+    {
+      "accountNumber": "1122334455",
+      "accountHolder": "Alice Johnson",
+      "balance": 5345,
+      "id": "a8e0"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "c990",
+      "transactionId": "12375c30-e4c2-4383-98bc-68e6498bc6e4",
+      "date": "2025-01-30T13:50:09.776Z",
+      "description": "Transfer to 1122334455",
+      "amount": 123,
+      "fromAccount": "1234567890",
+      "toAccount": "1122334455",
+      "transactionType": "Transfer"
+    },
+    {
+      "id": "9dba",
+      "transactionId": "8447923d-1c12-4834-9c73-fc3322c5be0e",
+      "date": "2025-01-30T14:25:36.083Z",
+      "description": "Transfer to 0987654321",
+      "amount": 123,
+      "fromAccount": "1234567890",
+      "toAccount": "0987654321",
+      "transactionType": "Transfer"
+    },
+    {
+      "id": "58ac",
+      "transactionId": "e6fe48e2-74d8-4812-adca-2c1a3b997662",
+      "date": "2025-01-30T14:27:19.322Z",
+      "description": "Transfer to 1122334455",
+      "amount": 1000,
+      "fromAccount": "0987654321",
+      "toAccount": "1122334455",
+      "transactionType": "Transfer"
+    },
+    {
+      "id": "f8a9",
+      "transactionId": "821f8b51-9c6b-4585-99fc-bba84053e570",
+      "date": "2025-04-16T12:59:19.074Z",
+      "description": "Transfer to 0987654321",
+      "amount": 1000,
+      "fromAccount": "1234567890",
+      "toAccount": "0987654321",
+      "transactionType": "Transfer"
+    },
+    {
+      "id": "465d",
+      "transactionId": "d3398c2e-1414-4cc7-ab48-2ce9015cbc3a",
+      "date": "2025-04-17T05:53:25.111Z",
+      "description": "Transfer to 0987654321",
+      "amount": 1000,
+      "fromAccount": "1234567890",
+      "toAccount": "0987654321",
+      "transactionType": "Transfer"
+    }
+  ],
+  "transfers": [
+    {
+      "id": "2718",
+      "transferId": "0d54f286-8373-4f27-ba90-8ab6b87128ff",
+      "fromAccount": "1234567890",
+      "toAccount": "1122334455",
+      "amount": 123,
+      "date": "2025-01-30T13:50:09.776Z",
+      "status": "Success"
+    },
+    {
+      "id": "e52d",
+      "transferId": "d2288a68-62f1-4c14-bfdb-bcfb10d1dda4",
+      "fromAccount": "1234567890",
+      "toAccount": "0987654321",
+      "amount": 123,
+      "date": "2025-01-30T14:25:36.084Z",
+      "status": "Success"
+    },
+    {
+      "id": "6d9d",
+      "transferId": "64f28717-e1f1-4cd1-9dc5-c2f18ceb5f6c",
+      "fromAccount": "0987654321",
+      "toAccount": "1122334455",
+      "amount": 1000,
+      "date": "2025-01-30T14:27:19.322Z",
+      "status": "Success"
+    },
+    {
+      "id": "644f",
+      "transferId": "da93ab0c-3393-4fba-946d-a4e943cc96b4",
+      "fromAccount": "1234567890",
+      "toAccount": "0987654321",
+      "amount": 1000,
+      "date": "2025-04-16T12:59:19.075Z",
+      "status": "Success"
+    },
+    {
+      "id": "b030",
+      "transferId": "094d69a7-270f-4234-af96-57bec7c4da9f",
+      "fromAccount": "1234567890",
+      "toAccount": "0987654321",
+      "amount": 1000,
+      "date": "2025-04-17T05:53:25.111Z",
+      "status": "Success"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+<div>
+  <h2>Funds Transfer</h2>
+
+  <label for="fromAccount">From Account:</label>
+  <input type="text" [(ngModel)]="transferDetails.fromAccount" placeholder="From Account" id="fromAccount">
+
+  <label for="toAccount">To Account:</label>
+  <input type="text" [(ngModel)]="transferDetails.toAccount" placeholder="To Account" id="toAccount">
+
+  <label for="amount">Amount:</label>
+  <input type="number" [(ngModel)]="transferDetails.amount" placeholder="Amount" id="amount">
+
+  <button (click)="transferFunds()">Transfer</button>
+</div>

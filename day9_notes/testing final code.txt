@@ -1,0 +1,319 @@
+niitservice.service.ts
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { map } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class NiitserviceService {
+
+  
+  add(a: number, b: number): number {
+    return a + b;
+  }
+  constructor(private httpClient:HttpClient) { }
+
+  displayLog(data:string):void{
+    console.log(data);
+  }
+
+  fetchJsonData(){
+    return this.httpClient.get<any>('http://localhost:3000/posts')
+                .pipe(map(data=>{
+                   return {
+                   "result":data
+                   }
+
+                }))
+}
+}
+
+
+
+niitservice.service.spec.ts
+
+
+import { TestBed } from '@angular/core/testing';
+import { NiitserviceService } from './niitservice.service';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+
+const dummyPosts = [
+  {
+    id: 1,
+    title: 'Post 1',
+    content: 'This is the content of post 1.'
+  }
+];
+
+describe('NiitserviceService', () => {
+  let service: NiitserviceService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule], // Import HttpClientTestingModule
+      providers: [NiitserviceService]
+    });
+    service = TestBed.inject(NiitserviceService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  it('should add two numbers', () => {
+    let result = service.add(2, 3);
+    expect(result).toEqual(5);
+  });
+
+  it('should fetch JSON data from the API', () => {
+    const mockResponse = [
+      { id: 1, title: 'Post 1', content: 'This is the content of post 1.' },
+      { id: 2, title: 'Post 2', content: 'This is the content of post 2.' }
+    ];
+
+    service.fetchJsonData().subscribe((data) => {
+      expect(data).toEqual({ result: mockResponse });
+    });
+
+    const req = httpMock.expectOne('http://localhost:3000/posts');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
+  });
+});
+
+
+indec.service.spec.ts
+
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class IncdecService {
+
+  constructor() { }
+  value=0;
+  increment(){
+    this.value+=1;
+  }
+  decrement(){
+    this.value-=1;
+  }
+}
+
+indec.service.spec.ts
+
+import { TestBed } from '@angular/core/testing';
+
+import { IncdecService } from './incdec.service';
+
+describe('IncdecService', () => {
+  let service: IncdecService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(IncdecService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
+
+app.config.ts
+
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+};
+
+
+
+app.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { IncdecService } from './incdec.service';
+import { NiitserviceService } from './niitservice.service';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet,CommonModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent implements OnInit {
+  title = 'testingdemo';
+
+  constructor(public incdecService:IncdecService,private niitService:NiitserviceService){}
+  outputJson:any='';
+  ngOnInit() {
+    this.niitService.fetchJsonData()
+        .subscribe((data)=>{
+         console.log(data);
+         this.outputJson=data["result"]
+   
+        })  
+
+  }
+
+  increment() {
+    this.incdecService.increment();
+  }
+  
+  decrement() {
+    this.incdecService.decrement();
+  }
+}
+
+
+app.component.spec.ts
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AppComponent } from './app.component';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { IncdecService } from './incdec.service';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClientModule, provideHttpClient } from '@angular/common/http';
+
+
+
+describe('AppComponent', () => {
+  let fixture: ComponentFixture<AppComponent>;
+  let debugElement: DebugElement;
+  let incrementDecrementService: IncdecService;
+  let incrementSpy: any;
+   
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [provideHttpClient()]
+    }).compileComponents();
+    fixture = TestBed.createComponent(AppComponent);
+    debugElement = fixture.debugElement;
+    incrementDecrementService = debugElement.injector.get(IncdecService);
+    incrementSpy = spyOn(incrementDecrementService, 'increment').and.callThrough();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it(`should have the 'testingdemo' title`, () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('testingdemo');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, testingdemo');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.content span')?.textContent).toContain('app is running!');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('p')?.textContent).toContain('UnitTesting app is running!');
+  });
+
+  it('should render By.css', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const paraDe: DebugElement = fixture.debugElement;
+    const paragraphDe = paraDe.query(By.css('p'));
+    const p: HTMLElement = paragraphDe.nativeElement;
+    expect(p.textContent).toContain('UnitTesting app is running!');
+
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const paraDe:DebugElement=fixture.debugElement;
+    const paraE1:HTMLElement=paraDe.nativeElement;
+    expect(paraE1.querySelector('p')?.textContent).toContain('UnitTesting app is running!');
+ 
+  });
+
+  it('should call increment on the service', () => {
+    debugElement
+      .query(By.css('button.increment'))
+      .triggerEventHandler('click', null);
+  
+    expect(incrementDecrementService.value).toBe(1);
+    expect(incrementSpy).toHaveBeenCalled();
+    expect(incrementSpy).toHaveBeenCalledTimes(1);
+   expect(incrementSpy).not.toHaveBeenCalledWith('error');
+  
+  });
+});
+
+
+app.component.html
+
+<h1>Hello, testingdemo</h1>
+<div class="content">
+<span>app is running!</span>
+</div>
+
+<p>UnitTesting app is running!</p>
+
+<h1>{{ incdecService.value }}</h1>
+
+<button (click)="increment()" class="increment">Increment</button>
+
+<button (click)="decrement()" class="decrement">Decrement</button>
+
+<h2>Json data</h2>
+<ul>
+<li *ngFor="let items of outputJson">
+{{items.id}}  {{items.title}} {{items.author}}
+</li>
+
+</ul>
+
+<router-outlet />
+
+db.json
+
+{
+
+    "posts": [
+        {
+            "id": 1,
+            "title": "Post 1",
+            "content": "This is the content of post 1."
+        }
+      
+    ]
+}
+
+json-server --watch db.json

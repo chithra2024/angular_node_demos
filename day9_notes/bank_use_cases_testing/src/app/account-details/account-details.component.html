@@ -1,0 +1,23 @@
+<table mat-table [dataSource]="accounts" class="mat-elevation-z8">
+
+  <!-- Account Number Column -->
+  <ng-container matColumnDef="accountNumber">
+    <th mat-header-cell *matHeaderCellDef style="color:chocolate;"> Account Number </th>
+    <td mat-cell *matCellDef="let acc" style="color:black;"> {{ acc.accountNumber }} </td>
+  </ng-container>
+
+  <!-- Account Holder Column -->
+  <ng-container matColumnDef="accountHolder">
+    <th mat-header-cell *matHeaderCellDef style="color:chocolate;"> Account Holder </th>
+    <td mat-cell *matCellDef="let acc" style="color:black;"> {{ acc.accountHolder }} </td>
+  </ng-container>
+
+  <!-- Balance Column -->
+  <ng-container matColumnDef="balance">
+    <th mat-header-cell *matHeaderCellDef style="color:chocolate;"> Balance </th>
+    <td mat-cell *matCellDef="let acc" style="color:black;"> ${{ acc.balance }} </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns" style="color:chocolate;"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;" style="color:black;"></tr>
+</table>
