@@ -1,0 +1,188 @@
+.github\workflows\deploy.yml
+
+name: Build, Test and Commit Angular App to main/docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: |
+          npx ng test --watch=false --browsers=ChromeHeadless
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+
+      - name: Build Angular app into docs/
+        run: |
+          npx ng build --output-path=docs --base-href=https://chithra2024.github.io/angular_deploy3/
+
+      # Uncomment if you want to auto-commit the docs after build
+      - name: Configure Git
+        run: |
+          git config user.name "chithra2024"
+          git config user.email "chithrasaravanan2024@gmail.com"
+
+      - name: Commit and push built files
+        run: |
+          git add docs
+          git commit -m "Build Angular app and update docs directory" || echo "No changes to commit"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.DELSEC }}
+
+Note: Check settings: Actions-> General settings for read and write and create PAT and set in secret for current repo named DELSEC.
+
+angular.json
+============
+
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "mockdemo": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "docs",
+            "baseHref": "https://chithra2024.github.io/angular_deploy3/",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "mockdemo:build:production"
+            },
+            "development": {
+              "buildTarget": "mockdemo:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+ `- name: Checkout code`  
+`uses: actions/checkout@v4`  
+This step checks out your repository code so that the GitHub Actions runner can access your project files.  
+- It uses the official GitHub Action called `actions/checkout`, version 4.
+- Without this step, the workflow wouldn’t have access to your project source code (like `package.json`, `src/`, etc.).
+
+----------------------------------
+
+`- name: Set up Node.js`  
+ `uses: actions/setup-node@v4`  
+This step installs Node.js on the GitHub runner so that you can run Node-based commands (like `npm ci`, `ng build`, etc.).  
+- It uses the official `actions/setup-node` GitHub Action, version 4.
+- The `with:` section below it tells it to install a specific Node.js version (in your case, version 18).
+
+-----------------------------------
+
+- name: Install dependencies
+  run: npm ci
+
+
+
+`npm ci` stands for "clean install* and is specifically designed for automated environments like CI/CD pipelines(such as GitHub Actions).
+
+
+Faster->It skips steps like dependency resolution and installs directly from the lockfile (`package-lock.json`). 
+Exact versions->  It installs exactly what's listed in `package-lock.json`, ensuring consistent builds. 
+Clean install -> It removes the `node_modules` folder first to ensure no leftovers or side effects from previous installs. 
+Fails on mismatch -> If `package.json` and `package-lock.json` are out of sync, it fails, helping catch dependency issues early. 
+
+----------------------------------
+

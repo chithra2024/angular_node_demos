@@ -1,0 +1,64 @@
+app.component.html
+
+<button (click)="call()">click here</button> 
+<button (click)="activateTrial()">Activate Trial</button>
+
+<div *ngIf="showTrialDuration()">
+  Trial is active and not expired!
+</div>
+
+
+<router-outlet />
+
+
+
+app.component.ts
+
+import { CommonModule } from '@angular/common';
+import { Component, computed, effect, signal } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet,CommonModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'signals';
+
+constructor(){
+  effect(() => {
+    console.log('Trial Duration Visibility Changed:', this.showTrialDuration());
+  });
+}
+
+  call(){
+    // Create a signal with the `signal` function.
+const firstName = signal('Morgan');
+// Read a signal value by calling it— signals are functions.
+console.log(firstName());
+// Change the value of this signal by calling its `set` method with a new value.
+firstName.set('Jaime');
+console.log(firstName());
+// You can also use the `update` method to change the value
+// based on the previous value.
+firstName.update(name => name.toUpperCase());
+console.log(firstName());
+const firstName1 = signal('Morgan');
+const firstNameCapitalized = computed(() => firstName1().toUpperCase());
+console.log(firstNameCapitalized()); // MORGAN  
+firstName1.set('Jaime');
+console.log(firstNameCapitalized()); // JAIME
+
+
+}
+
+  isTrial = signal(false);
+  isTrialExpired = signal(false);
+  showTrialDuration = computed(() => this.isTrial() && !this.isTrialExpired());
+  activateTrial() {
+    this.isTrial.set(true);
+    // console.log('showTrialDuration:', this.showTrialDuration()); // Should be true if not expired
+  }
+}

@@ -1,0 +1,125 @@
+Step 1: Initialize Your Project
+
+mkdir express-github-actions && cd express-github-actions
+npm init -y
+
+Step 2: Install Dependencies
+
+npm install express
+npm install --save-dev jest supertest
+
+
+Step 3: Create Express App
+
+`app.js`
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.status(200).send('Hello from Express!');
+});
+
+module.exports = app;
+
+`server.js`
+
+const app = require('./app');
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
+
+
+Step 4: Add Test Script in `package.json`
+
+Update `package.json`:
+
+"scripts": {
+  "start": "node server.js",
+  "test": "jest"
+}
+
+
+Step 5: Create Test File
+
+mkdir __tests__
+
+`__tests__/app.test.js`**
+
+const request = require('supertest');
+const app = require('../app');
+
+describe('GET /', () => {
+  it('should return Hello from Express!', async () => {
+    const res = await request(app).get('/');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toBe('Hello from Express!');
+  });
+});
+
+
+Step 6: Create GitHub Actions Workflow
+
+Create folder:
+
+
+
+`.github/workflows/nodejs.yml`**
+
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test
+
+
+Step 7: Initialize Git and Push to GitHub
+
+manually
+
+Step 8: See the Workflow in Action
+
+1. Go to your GitHub repo
+2. Click on Actions
+3. You'll see your Node.js CI workflow run and show test results.
+-------------------------------------------------------------------
+
+Action: uses: actions/checkout@v4
+This tells GitHub Actions to use the checkout action, version 4, maintained by GitHub.
+What does actions/checkout@v4 do
+It checks out your repository's code onto the GitHub Actions runner so the workflow can access it.
+--------------------------------------------------------------------------
+
+Action: uses: actions/setup-node@v4
+This tells GitHub Actions to use the official Node.js setup action, maintained by GitHub.
+It installs the specified version of Node.js on the GitHub Actions runner (the virtual machine running your workflow).
+
+-------------------------------------------------------------------------
